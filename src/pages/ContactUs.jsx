@@ -36,7 +36,7 @@ export default function ContactUs() {
   return (
     <InfoPageShell
       eyebrow="Contact us"
-      title="Let’s talk about your care workflow."
+      title="Let's talk about your care workflow."
       intro="Share what you need, whether that is a demo, onboarding help, or a quick question about MediConnect."
       visual={<ContactVisual />}
       cards={contactCards}

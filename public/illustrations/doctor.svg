@@ -1,0 +1,33 @@
+<svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Doctor illustration">
+  <defs>
+    <linearGradient id="doctorBg" x1="24" y1="18" x2="294" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAFBF4"/>
+      <stop offset="1" stop-color="#C7F1DE"/>
+    </linearGradient>
+    <linearGradient id="doctorCard" x1="72" y1="52" x2="248" y2="176" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2FFF8"/>
+    </linearGradient>
+    <linearGradient id="doctorAccent" x1="156" y1="62" x2="220" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#17A96B"/>
+      <stop offset="1" stop-color="#0E7E54"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="220" rx="30" fill="url(#doctorBg)"/>
+  <circle cx="58" cy="56" r="28" fill="#D4F3E4"/>
+  <circle cx="266" cy="170" r="38" fill="#DCF8EA"/>
+  <rect x="56" y="42" width="210" height="132" rx="24" fill="url(#doctorCard)" stroke="#8FD8B3" stroke-opacity="0.42"/>
+  <circle cx="112" cy="94" r="26" fill="#DFF7EA"/>
+  <path d="M112 82V106" stroke="#17A96B" stroke-width="8" stroke-linecap="round"/>
+  <path d="M100 94H124" stroke="#17A96B" stroke-width="8" stroke-linecap="round"/>
+  <rect x="148" y="70" width="90" height="16" rx="8" fill="#CFEFDB"/>
+  <rect x="148" y="96" width="128" height="12" rx="6" fill="#E1F5EA"/>
+  <rect x="148" y="118" width="106" height="12" rx="6" fill="#E1F5EA"/>
+  <rect x="148" y="140" width="74" height="12" rx="6" fill="#E1F5EA"/>
+  <rect x="78" y="160" width="168" height="12" rx="6" fill="#D1F0DE"/>
+  <path d="M186 182C193.5 168.5 205.5 160 220 160H244C254.493 160 263 168.507 263 179V184H186V182Z" fill="url(#doctorAccent)"/>
+  <circle cx="214" cy="160" r="10" fill="#17A96B"/>
+  <circle cx="238" cy="156" r="8" fill="#56C994"/>
+  <path d="M208 160C210.5 156 217.5 156 220 160" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M232 156C234 153 239 153 241 156" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+</svg>
