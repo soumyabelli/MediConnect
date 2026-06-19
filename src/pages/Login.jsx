@@ -76,6 +76,19 @@ export default function Login() {
           </p>
         </form>
       </section>
+      <div className="role-buttons">
+  <button type="button" className="role-btn">
+    Patient
+  </button>
+
+  <button type="button" className="role-btn">
+    Doctor
+  </button>
+
+  <button type="button" className="role-btn">
+    Admin
+  </button>
+</div>
     </main>
   )
 }
