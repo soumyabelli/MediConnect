@@ -88,7 +88,7 @@ export default function AboutUs() {
             </div>
             <div className="metric-stack__item">
               <strong>100%</strong>
-              <span>Encrypted record sharing</span>
+              <span>Encrypted record sharing is provided</span>
             </div>
           </div>
         </article>

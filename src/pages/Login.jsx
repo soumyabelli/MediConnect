@@ -18,7 +18,7 @@ const roleCards = [
   {
     role: 'admin',
     label: 'Admin',
-    title: 'Control the clinic workspace',
+    title: 'Control the clinic workspace and doctor controll',
     description: 'Create doctor accounts, review patients, and keep every record in one control panel.',
     image: '/illustrations/admin.svg',
     points: ['Admin login is seeded in MongoDB', 'Doctors and patients stay in sync', 'Passwords are hashed before storage'],
