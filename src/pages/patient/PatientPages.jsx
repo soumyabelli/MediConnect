@@ -71,7 +71,7 @@ function PatientDashboardPage() {
         <Panel title="Next steps" description="A few quick actions to keep care moving">
           <div className="portal-notes">
             <article className="portal-note">
-              <strong>Keep your records updated</strong>
+              <strong>Keep your records updated please</strong>
               <p>Use the records page to review what your doctor has already shared.</p>
             </article>
             <article className="portal-note">

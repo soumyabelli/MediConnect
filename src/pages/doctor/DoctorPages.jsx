@@ -132,7 +132,7 @@ function DoctorPatientsPage() {
             ))}
           />
         ) : (
-          <EmptyState title="No patients yet" description="Once admin assigns patients to you, their profiles will appear here." />
+          <EmptyState title="No patient yet" description="Once admin assigns patients to you, their profiles will appear here." />
         )}
       </Panel>
     </div>

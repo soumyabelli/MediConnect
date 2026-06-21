@@ -71,7 +71,7 @@ function AdminDashboardPage() {
       <SectionHeader
         eyebrow="Admin overview"
         title="Welcome back, Admin"
-        description="Keep every doctor, patient, appointment, and record in one clean control center."
+        description="Keep every doctors, patients, appointments, and records in one clean control center."
         action={
           <div className="portal-action-row">
             <Link className="portal-button" to="/admin/doctors">
