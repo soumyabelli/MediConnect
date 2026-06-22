@@ -55,8 +55,8 @@ export default function Login() {
   useEffect(() => {
     if (role === 'admin') {
       setSignInForm({
-        email: 'admin@gmail.con',
-        password: 'as123',
+        email: 'admin@gmail.com',
+        password: '123',
       })
     } else {
       setSignInForm({
@@ -136,7 +136,7 @@ export default function Login() {
     if (role === 'admin') {
       return {
         heading: 'Seeded admin credentials',
-        text: 'Use admin@gmail.con with as123 to open the admin dashboard.'
+        text: 'Use admin@gmail.com with 123 to open the admin dashboard.'
       }
     }
     if (role === 'doctor') {
