@@ -11,46 +11,17 @@ import {
   FiUser,
   FiUsers,
   FiChevronRight,
+  FiEye,
+  FiEyeOff,
+  FiVideo,
+  FiHeadphones,
+  FiCloud,
+  FiCheckCircle,
 } from 'react-icons/fi'
+import { FcGoogle } from 'react-icons/fc'
 import doctorImage from '../assets/women doctor.png'
 import BrandMark from '../components/BrandMark'
 import { useMediConnect } from '../context/MediConnectContext'
-
-const roleCards = [
-  {
-    role: 'patient',
-    label: 'Patient',
-    title: 'Register first, then sign in',
-    description: 'Fill the registration form to create your patient portal.',
-    note: 'Register once and the admin can view your details immediately.',
-    image: '/illustrations/patient.svg',
-    icon: FiHeart,
-    tone: 'rose',
-    points: ['Registration is saved in MongoDB', 'Doctors are picked from the live database list', 'Your account opens right after signup'],
-  },
-  {
-    role: 'doctor',
-    label: 'Doctor',
-    title: 'Sign in with admin-issued credentials',
-    description: 'Use the email and temporary password created by the admin.',
-    note: 'Doctor accounts are created in the admin dashboard and shared with you securely.',
-    image: doctorImage,
-    icon: FiUsers,
-    tone: 'teal',
-    points: ['Assigned patients appear automatically', 'Appointments and records stay connected', 'Login details are stored securely'],
-  },
-  {
-    role: 'admin',
-    label: 'Admin',
-    title: 'Control the clinic workspace',
-    description: 'Open the seeded admin account to manage doctors and patients.',
-    note: 'Use admin@gmail.con with as123 to open the admin dashboard.',
-    image: '/illustrations/admin.svg',
-    icon: FiShield,
-    tone: 'blue',
-    points: ['Admin login is seeded in MongoDB', 'You can create doctor accounts from the dashboard', 'Patients and records stay in sync'],
-  },
-]
 
 const patientDefaults = {
   name: '',
@@ -66,53 +37,36 @@ const patientDefaults = {
   preferredDoctorId: '',
 }
 
-function AuthBullet({ icon: Icon, title, text }) {
-  return (
-    <div className="auth-bullet">
-      <span className="auth-bullet__icon" aria-hidden="true">
-        <Icon />
-      </span>
-      <div>
-        <strong>{title}</strong>
-        <p>{text}</p>
-      </div>
-    </div>
-  )
-}
-
-function RoleTab({ card, active, onClick }) {
-  const Icon = card.icon
-
-  return (
-    <button
-      type="button"
-      className={`auth-role-tab auth-role-tab--${card.tone} ${active ? 'auth-role-tab--active' : ''}`}
-      onClick={onClick}
-      aria-pressed={active}
-    >
-      <span className="auth-role-tab__icon" aria-hidden="true">
-        <Icon />
-      </span>
-      <span className="auth-role-tab__copy">
-        <strong>{card.label}</strong>
-        <small>{card.description}</small>
-      </span>
-    </button>
-  )
-}
-
 export default function Login() {
   const navigate = useNavigate()
   const { bootstrapping, publicDoctors, session, login, registerPatient } = useMediConnect()
-  const [role, setRole] = useState('admin')
+  const [role, setRole] = useState('doctor') // default to Doctor tab as shown in the mockup
   const [mode, setMode] = useState('signin')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [signInForm, setSignInForm] = useState({
-    email: 'admin@gmail.con',
-    password: 'as123',
+    email: '',
+    password: '',
   })
   const [patientForm, setPatientForm] = useState(patientDefaults)
+
+  // Populate admin credentials helper if role is admin
+  useEffect(() => {
+    if (role === 'admin') {
+      setSignInForm({
+        email: 'admin@gmail.con',
+        password: 'as123',
+      })
+    } else {
+      setSignInForm({
+        email: '',
+        password: '',
+      })
+    }
+    setMessage('')
+    setError('')
+  }, [role])
 
   useEffect(() => {
     if (!bootstrapping && session?.role) {
@@ -120,24 +74,7 @@ export default function Login() {
     }
   }, [bootstrapping, navigate, session])
 
-  const selectedRole = roleCards.find((card) => card.role === role) || roleCards[0]
   const isPatient = role === 'patient'
-  const authNoteHeading =
-    role === 'admin' ? 'Seeded admin credentials' : role === 'doctor' ? 'Doctor access' : mode === 'register' ? 'Patient registration' : 'Patient sign in'
-  const authNoteCopy =
-    role === 'admin'
-      ? selectedRole.note
-      : role === 'doctor'
-        ? selectedRole.note
-        : mode === 'register'
-          ? selectedRole.note
-          : 'Use the email and password you created during registration.'
-  const submitLabel =
-    isPatient && mode === 'register'
-      ? 'Create patient account'
-      : isPatient
-        ? 'Open patient dashboard'
-        : 'Sign in to dashboard'
 
   const handleSignInChange = (event) => {
     const { name, value } = event.target
@@ -153,18 +90,7 @@ export default function Login() {
     setRole(nextRole)
     setMessage('')
     setError('')
-    setMode(nextRole === 'patient' ? 'register' : 'signin')
-    setSignInForm(
-      nextRole === 'admin'
-        ? {
-            email: 'admin@gmail.con',
-            password: 'as123',
-          }
-        : {
-            email: '',
-            password: '',
-          },
-    )
+    setMode(nextRole === 'patient' ? 'signin' : 'signin')
   }
 
   const handleSignInSubmit = async (event) => {
@@ -203,198 +129,310 @@ export default function Login() {
     navigate('/patient', { replace: true })
   }
 
-  const doctorOptions = publicDoctors
+  const doctorOptions = publicDoctors || []
+
+  // Helper note based on role
+  const getHelperNote = () => {
+    if (role === 'admin') {
+      return {
+        heading: 'Seeded admin credentials',
+        text: 'Use admin@gmail.con with as123 to open the admin dashboard.'
+      }
+    }
+    if (role === 'doctor') {
+      return {
+        heading: 'Doctor Access',
+        text: 'Use the email and temporary password created by the administrator.'
+      }
+    }
+    if (role === 'patient') {
+      if (mode === 'register') {
+        return {
+          heading: 'Patient registration',
+          text: 'Fill the registration form to create your patient portal. Admin and doctors will view your details immediately.'
+        }
+      }
+      return {
+        heading: 'Patient sign in',
+        text: 'Use the email and password you created during registration.'
+      }
+    }
+    return null
+  }
+
+  const helperNote = getHelperNote()
 
   return (
-    <main className="auth-page">
-      <section className="auth-shell">
-        <aside className="auth-copy auth-copy--hero">
-          <div className="auth-brand-row">
-            <Link to="/" className="auth-brand" aria-label="MediConnect home">
-              <BrandMark />
-              <span className="auth-brand__copy">
-                <strong>MediConnect</strong>
-                <small>Telemedicine &amp; EHR System</small>
-              </span>
-            </Link>
-
-            <span className="auth-pill">Role based access</span>
-          </div>
-
-          <div className="auth-copy__hero">
-            <p className="auth-eyebrow">Secure access</p>
-            <h1 className="auth-title">Better healthcare connected with care</h1>
-            <p className="auth-intro">
-              MediConnect brings patients, doctors, and administrators together on a secure platform for consultations, records, and everyday care.
-            </p>
-          </div>
-
-          <div className="auth-feature-list">
-            <AuthBullet
-              icon={FiShield}
-              title="Secure admin flow"
-              text="The admin account is seeded into MongoDB so you can open the dashboard right away."
-            />
-            <AuthBullet
-              icon={FiUsers}
-              title="Live doctor onboarding"
-              text="Doctor accounts are stored in the database and immediately available for login."
-            />
-            <AuthBullet
-              icon={FiHeart}
-              title="Patient registration"
-              text="Patients fill the form once, and their data is visible to admin, doctor, and patient views."
-            />
-            <AuthBullet
-              icon={FiFileText}
-              title="Everything stays in sync"
-              text="Appointments, records, and login details are fetched from the backend instead of local mock data."
-            />
-          </div>
-
-          <div className="auth-hero-card">
-            <div className="auth-hero-card__visual">
-              <img src={doctorImage} alt="Doctor portrait" className="auth-hero-card__image" />
-              <span className="auth-hero-card__badge">Doctor access</span>
-            </div>
-            <div className="auth-hero-card__copy">
-              <strong>Admin creates the account, doctor signs in right away</strong>
-              <p>Share the temporary password from the admin dashboard and the doctor can open their dashboard immediately.</p>
+    <main className="new-login-container">
+      {/* Left Panel: Hero and details */}
+      <section className="login-hero-panel">
+        <header className="login-hero-header">
+          <div className="login-brand-logo">
+            <BrandMark />
+            <div className="login-brand-logo-text">
+              <span className="login-brand-name">MediConnect</span>
+              <span className="login-brand-sub">Telemedicine &amp; EHR System</span>
             </div>
           </div>
+        </header>
 
-          <div className="auth-chip-row">
-            <span className="auth-chip">Seeded admin</span>
-            <span className="auth-chip">Doctor onboarding</span>
-            <span className="auth-chip">Patient intake</span>
-          </div>
+        <div className="login-hero-body">
+          <h1 className="login-hero-headline">
+            Better Healthcare<br />
+            Connected With <span className="highlight-care">Care</span>
+          </h1>
+          <p className="login-hero-desc">
+            MediConnect brings patients, doctors, and administrators together on a secure platform for better consultations, records, and care.
+          </p>
 
-          <Link to="/" className="portal-button portal-button--ghost auth-home-link">
-            Return to home
-            <FiArrowRight aria-hidden="true" />
-          </Link>
-        </aside>
-
-        <div className="auth-card auth-card--wide">
-          <div className="auth-card__header">
-            <span className="auth-card__eyebrow">Portal access</span>
-            <h2>Choose your role</h2>
-            <p>Patient registration opens by default for the patient role. Admin and doctor users sign in with the credentials created in MediConnect.</p>
-          </div>
-
-          <div className="auth-role-tabs" role="tablist" aria-label="Role selection">
-            {roleCards.map((card) => (
-              <RoleTab
-                key={card.role}
-                card={card}
-                active={role === card.role}
-                onClick={() => handleRoleSelect(card.role)}
-              />
-            ))}
-          </div>
-
-          <section className={`auth-role-summary auth-role-summary--${selectedRole.tone}`}>
-            <img src={selectedRole.image} alt="" aria-hidden="true" className="auth-role-summary__image" />
-            <div className="auth-role-summary__copy">
-              <span className="auth-role-summary__eyebrow">Selected role</span>
-              <strong>{selectedRole.title}</strong>
-              <p>{selectedRole.description}</p>
+          <div className="login-features-list">
+            <div className="login-feature-item">
+              <div className="login-feature-icon-wrapper secure">
+                <FiShield />
+              </div>
+              <div className="login-feature-text">
+                <span className="login-feature-title">Secure &amp; Confidential</span>
+                <span className="login-feature-desc">Your data is safe with end-to-end encryption</span>
+              </div>
             </div>
-            <ul className="auth-role-summary__points">
-              {selectedRole.points.map((point) => (
-                <li key={point}>{point}</li>
-              ))}
-            </ul>
-          </section>
 
-          <div className="auth-notes">
-            <strong>{authNoteHeading}</strong>
-            <p>{authNoteCopy}</p>
+            <div className="login-feature-item">
+              <div className="login-feature-icon-wrapper records">
+                <FiFileText />
+              </div>
+              <div className="login-feature-text">
+                <span className="login-feature-title">All-in-One Records</span>
+                <span className="login-feature-desc">Access medical history, prescriptions &amp; reports</span>
+              </div>
+            </div>
+
+            <div className="login-feature-item">
+              <div className="login-feature-icon-wrapper consultations">
+                <FiVideo />
+              </div>
+              <div className="login-feature-text">
+                <span className="login-feature-title">Seamless Consultations</span>
+                <span className="login-feature-desc">Connect instantly with your healthcare provider</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="login-hero-visual-area">
+          <div className="login-doctor-img-container">
+            <img src={doctorImage} alt="Doctor portrait" />
           </div>
 
-          {isPatient ? (
-            <>
-              <div className="auth-mode-toggle" role="tablist" aria-label="Patient access mode">
+          <div className="login-float-badge">
+            <div className="login-float-icon">
+              <FiLock />
+            </div>
+            <div className="login-float-text">
+              <strong>Your health. Your data.</strong>
+              Our priority. Trusted by thousands of patients and healthcare professionals.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Right Panel: Login Card */}
+      <section className="login-form-panel">
+        <div className="login-card-container">
+          <div className="login-form-card">
+            <div className="login-card-header">
+              <h2 className="login-card-title">Welcome Back!</h2>
+              <p className="login-card-subtitle">Login to continue to your account</p>
+              <div className="login-card-pulse-divider">
+                <FiHeart className="login-pulse-icon" />
+              </div>
+            </div>
+
+            {/* Role Tab Selector */}
+            <div className="login-role-tabs" role="tablist" aria-label="Role selection">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={role === 'patient'}
+                className={`login-role-tab ${role === 'patient' ? 'active' : ''}`}
+                onClick={() => handleRoleSelect('patient')}
+              >
+                <FiUser /> Patient
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={role === 'doctor'}
+                className={`login-role-tab ${role === 'doctor' ? 'active' : ''}`}
+                onClick={() => handleRoleSelect('doctor')}
+              >
+                <FiUsers /> Doctor
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={role === 'admin'}
+                className={`login-role-tab ${role === 'admin' ? 'active' : ''}`}
+                onClick={() => handleRoleSelect('admin')}
+              >
+                <FiShield /> Admin
+              </button>
+            </div>
+
+            {/* Feedback messages */}
+            {message && <div className="login-feedback success">{message}</div>}
+            {error && <div className="login-feedback error">{error}</div>}
+
+            {isPatient && (
+              <div className="patient-toggle-container">
                 <button
                   type="button"
-                  className={mode === 'register' ? 'auth-mode-toggle__button auth-mode-toggle__button--active' : 'auth-mode-toggle__button'}
+                  className={`patient-toggle-btn ${mode === 'signin' ? 'active' : ''}`}
+                  onClick={() => setMode('signin')}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  className={`patient-toggle-btn ${mode === 'register' ? 'active' : ''}`}
                   onClick={() => setMode('register')}
                 >
                   Register
                 </button>
-                <button
-                  type="button"
-                  className={mode === 'signin' ? 'auth-mode-toggle__button auth-mode-toggle__button--active' : 'auth-mode-toggle__button'}
-                  onClick={() => setMode('signin')}
-                >
-                  Sign in
-                </button>
               </div>
+            )}
 
-              {mode === 'register' ? (
-                <form className="auth-form" onSubmit={handlePatientSubmit}>
-                  <div className="auth-form__grid">
-                    <label className="auth-field">
-                      Full name
-                      <div className="auth-input-wrap">
-                        <FiUser aria-hidden="true" />
-                        <input name="name" value={patientForm.name} onChange={handlePatientChange} placeholder="Your full name" />
-                      </div>
-                    </label>
-                    <label className="auth-field">
-                      Email
-                      <div className="auth-input-wrap">
-                        <FiMail aria-hidden="true" />
-                        <input name="email" type="email" value={patientForm.email} onChange={handlePatientChange} placeholder="patient@example.com" />
-                      </div>
-                    </label>
+            {/* Forms rendering */}
+            {isPatient && mode === 'register' ? (
+              /* Patient registration form */
+              <form className="login-register-form" onSubmit={handlePatientSubmit}>
+                <div className="login-form-grid">
+                  <div className="login-form-group">
+                    <label className="login-input-label">Full name</label>
+                    <div className="login-input-wrapper">
+                      <FiUser className="input-icon" />
+                      <input
+                        name="name"
+                        value={patientForm.name}
+                        onChange={handlePatientChange}
+                        placeholder="Your full name"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="auth-form__grid">
-                    <label className="auth-field">
-                      Password
-                      <div className="auth-input-wrap">
-                        <FiLock aria-hidden="true" />
-                        <input name="password" type="password" value={patientForm.password} onChange={handlePatientChange} placeholder="Create a password" />
-                      </div>
-                    </label>
-                    <label className="auth-field">
-                      Phone
-                      <div className="auth-input-wrap">
-                        <FiPhone aria-hidden="true" />
-                        <input name="phone" value={patientForm.phone} onChange={handlePatientChange} placeholder="+91 90000 00003" />
-                      </div>
-                    </label>
+                  <div className="login-form-group">
+                    <label className="login-input-label">Email</label>
+                    <div className="login-input-wrapper">
+                      <FiMail className="input-icon" />
+                      <input
+                        name="email"
+                        type="email"
+                        value={patientForm.email}
+                        onChange={handlePatientChange}
+                        placeholder="patient@example.com"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div className="auth-form__grid">
-                    <label className="auth-field">
-                      Age
-                      <input name="age" type="number" min="0" value={patientForm.age} onChange={handlePatientChange} placeholder="28" />
-                    </label>
-                    <label className="auth-field">
-                      Gender
-                      <select name="gender" value={patientForm.gender} onChange={handlePatientChange}>
+                  <div className="login-form-group">
+                    <label className="login-input-label">Password</label>
+                    <div className="login-input-wrapper">
+                      <FiLock className="input-icon" />
+                      <input
+                        name="password"
+                        type="password"
+                        value={patientForm.password}
+                        onChange={handlePatientChange}
+                        placeholder="Create a password"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="login-form-group">
+                    <label className="login-input-label">Phone</label>
+                    <div className="login-input-wrapper">
+                      <FiPhone className="input-icon" />
+                      <input
+                        name="phone"
+                        value={patientForm.phone}
+                        onChange={handlePatientChange}
+                        placeholder="+91 90000 00003"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="login-form-group">
+                    <label className="login-input-label">Age</label>
+                    <div className="login-input-wrapper">
+                      <input
+                        name="age"
+                        type="number"
+                        min="0"
+                        value={patientForm.age}
+                        onChange={handlePatientChange}
+                        placeholder="28"
+                        style={{ paddingLeft: '14px' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="login-form-group">
+                    <label className="login-input-label">Gender</label>
+                    <div className="login-input-wrapper">
+                      <select
+                        name="gender"
+                        value={patientForm.gender}
+                        onChange={handlePatientChange}
+                        style={{ paddingLeft: '14px' }}
+                      >
                         <option>Female</option>
                         <option>Male</option>
                         <option>Other</option>
                       </select>
-                    </label>
+                    </div>
                   </div>
 
-                  <label className="auth-field auth-field--full">
-                    Condition / reason
-                    <input name="condition" value={patientForm.condition} onChange={handlePatientChange} placeholder="Heart care, migraine, fever..." />
-                  </label>
+                  <div className="login-form-group full-width">
+                    <label className="login-input-label">Condition / Reason</label>
+                    <div className="login-input-wrapper">
+                      <input
+                        name="condition"
+                        value={patientForm.condition}
+                        onChange={handlePatientChange}
+                        placeholder="Heart care, migraine, fever..."
+                        style={{ paddingLeft: '14px' }}
+                        required
+                      />
+                    </div>
+                  </div>
 
-                  <div className="auth-form__grid">
-                    <label className="auth-field">
-                      Blood group
-                      <input name="bloodGroup" value={patientForm.bloodGroup} onChange={handlePatientChange} placeholder="O+" />
-                    </label>
-                    <label className="auth-field">
-                      Preferred doctor
-                      <select name="preferredDoctorId" value={patientForm.preferredDoctorId} onChange={handlePatientChange}>
+                  <div className="login-form-group">
+                    <label className="login-input-label">Blood group</label>
+                    <div className="login-input-wrapper">
+                      <input
+                        name="bloodGroup"
+                        value={patientForm.bloodGroup}
+                        onChange={handlePatientChange}
+                        placeholder="O+"
+                        style={{ paddingLeft: '14px' }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="login-form-group">
+                    <label className="login-input-label">Preferred doctor</label>
+                    <div className="login-input-wrapper">
+                      <select
+                        name="preferredDoctorId"
+                        value={patientForm.preferredDoctorId}
+                        onChange={handlePatientChange}
+                        style={{ paddingLeft: '14px' }}
+                      >
                         <option value="">Auto assign from condition</option>
                         {doctorOptions.map((doctor) => (
                           <option key={doctor.id} value={doctor.id}>
@@ -402,101 +440,150 @@ export default function Login() {
                           </option>
                         ))}
                       </select>
-                    </label>
-                  </div>
-
-                  <label className="auth-field auth-field--full">
-                    Address
-                    <input name="address" value={patientForm.address} onChange={handlePatientChange} placeholder="City, state" />
-                  </label>
-
-                  <label className="auth-field auth-field--full">
-                    Notes
-                    <textarea name="notes" rows="3" value={patientForm.notes} onChange={handlePatientChange} placeholder="Any extra information for the doctor" />
-                  </label>
-
-                  <div className="auth-notes auth-notes--soft auth-field--full">
-                    <strong>Available doctors from the database</strong>
-                    <div className="auth-doctor-list">
-                      {doctorOptions.length ? (
-                        doctorOptions.map((doctor) => (
-                          <span key={doctor.id}>
-                            {doctor.name} - {doctor.specialization}
-                          </span>
-                        ))
-                      ) : (
-                        <span>No doctors have been added yet. The admin can create them from the dashboard.</span>
-                      )}
                     </div>
                   </div>
 
-                  {message ? <p className="auth-feedback auth-feedback--success">{message}</p> : null}
-                  {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
-
-                  <button type="submit" className="portal-button auth-submit">
-                    {submitLabel}
-                    <FiChevronRight aria-hidden="true" />
-                  </button>
-                </form>
-              ) : (
-                <form className="auth-form" onSubmit={handleSignInSubmit}>
-                  <label className="auth-field">
-                    Email address
-                    <div className="auth-input-wrap">
-                      <FiMail aria-hidden="true" />
-                      <input name="email" type="email" value={signInForm.email} onChange={handleSignInChange} placeholder="patient@example.com" />
+                  <div className="login-form-group full-width">
+                    <label className="login-input-label">Address</label>
+                    <div className="login-input-wrapper">
+                      <input
+                        name="address"
+                        value={patientForm.address}
+                        onChange={handlePatientChange}
+                        placeholder="City, state"
+                        style={{ paddingLeft: '14px' }}
+                        required
+                      />
                     </div>
-                  </label>
-                  <label className="auth-field">
-                    Password
-                    <div className="auth-input-wrap">
-                      <FiLock aria-hidden="true" />
-                      <input name="password" type="password" value={signInForm.password} onChange={handleSignInChange} placeholder="Your password" />
+                  </div>
+
+                  <div className="login-form-group full-width">
+                    <label className="login-input-label">Notes</label>
+                    <div className="login-input-wrapper">
+                      <textarea
+                        name="notes"
+                        rows="2"
+                        value={patientForm.notes}
+                        onChange={handlePatientChange}
+                        placeholder="Any extra information for the doctor"
+                        style={{ paddingLeft: '14px' }}
+                      />
                     </div>
+                  </div>
+                </div>
+
+                <button type="submit" className="login-submit-btn" style={{ marginTop: '15px' }}>
+                  Create patient account <FiChevronRight />
+                </button>
+              </form>
+            ) : (
+              /* Sign-in Form */
+              <form className="login-signin-form" onSubmit={handleSignInSubmit}>
+                <div className="login-form-group">
+                  <label className="login-input-label">Email Address</label>
+                  <div className="login-input-wrapper">
+                    <FiMail className="input-icon" />
+                    <input
+                      name="email"
+                      type="email"
+                      value={signInForm.email}
+                      onChange={handleSignInChange}
+                      placeholder="Enter your email address"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="login-form-group">
+                  <label className="login-input-label">Password</label>
+                  <div className="login-input-wrapper">
+                    <FiLock className="input-icon" />
+                    <input
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={signInForm.password}
+                      onChange={handleSignInChange}
+                      placeholder="Enter your password"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="login-options-row">
+                  <label className="login-remember-me">
+                    <input type="checkbox" />
+                    <span>Remember me</span>
                   </label>
-
-                  {message ? <p className="auth-feedback auth-feedback--success">{message}</p> : null}
-                  {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
-
-                  <button type="submit" className="portal-button auth-submit">
-                    {submitLabel}
-                    <FiChevronRight aria-hidden="true" />
-                  </button>
-                </form>
-              )}
-            </>
-          ) : (
-            <form className="auth-form" onSubmit={handleSignInSubmit}>
-              <label className="auth-field">
-                Email address
-                <div className="auth-input-wrap">
-                  <FiMail aria-hidden="true" />
-                  <input
-                    name="email"
-                    type="email"
-                    value={signInForm.email}
-                    onChange={handleSignInChange}
-                    placeholder={role === 'admin' ? 'admin@gmail.con' : 'doctor@example.com'}
-                  />
+                  <a href="#forgot" className="login-forgot-link">Forgot Password?</a>
                 </div>
-              </label>
-              <label className="auth-field">
-                Password
-                <div className="auth-input-wrap">
-                  <FiLock aria-hidden="true" />
-                  <input name="password" type="password" value={signInForm.password} onChange={handleSignInChange} placeholder="Enter your password" />
-                </div>
-              </label>
 
-              {message ? <p className="auth-feedback auth-feedback--success">{message}</p> : null}
-              {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
+                <button type="submit" className="login-submit-btn">
+                  Login <FiArrowRight className="submit-arrow" />
+                </button>
+              </form>
+            )}
 
-              <button type="submit" className="portal-button auth-submit">
-                {submitLabel}
-                <FiChevronRight aria-hidden="true" />
-              </button>
-            </form>
-          )}
+            <div className="login-or-divider">
+              <span>or</span>
+            </div>
+
+            <button type="button" className="login-google-btn">
+              <FcGoogle className="google-icon" /> Login with Google
+            </button>
+
+            <div className="login-card-footer">
+              Don't have an account?{' '}
+              <span className="login-card-footer-link" onClick={() => { if (role === 'patient') { setMode('register'); } else { setRole('patient'); setMode('register'); } }}>
+                Contact administrator
+              </span>
+            </div>
+
+            {helperNote && (
+              <div className="login-credentials-note">
+                <strong>{helperNote.heading}</strong>
+                <p>{helperNote.text}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Security Compliance badges below card */}
+          <div className="login-security-badges">
+            <div className="login-badge-item">
+              <FiShield className="login-badge-icon" />
+              <div className="login-badge-text">
+                <span className="login-badge-title">HIPAA</span>
+                <span className="login-badge-sub">Compliant</span>
+              </div>
+            </div>
+            <div className="login-badge-item">
+              <FiLock className="login-badge-icon" />
+              <div className="login-badge-text">
+                <span className="login-badge-title">Secure</span>
+                <span className="login-badge-sub">Platform</span>
+              </div>
+            </div>
+            <div className="login-badge-item">
+              <FiCloud className="login-badge-icon" />
+              <div className="login-badge-text">
+                <span className="login-badge-title">Always</span>
+                <span className="login-badge-sub">Available</span>
+              </div>
+            </div>
+            <div className="login-badge-item">
+              <FiHeadphones className="login-badge-icon" />
+              <div className="login-badge-text">
+                <span className="login-badge-title">24/7</span>
+                <span className="login-badge-sub">Support</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>
