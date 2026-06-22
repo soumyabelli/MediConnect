@@ -12,32 +12,43 @@ import {
   FiUsers,
   FiChevronRight,
 } from 'react-icons/fi'
+import doctorImage from '../assets/women doctor.png'
+import BrandMark from '../components/BrandMark'
 import { useMediConnect } from '../context/MediConnectContext'
 
 const roleCards = [
   {
-    role: 'admin',
-    label: 'Admin',
-    title: 'Control the clinic workspace and doctor controll',
-    description: 'Create doctor accounts, review patients, and keep every record in one control panel.',
-    image: '/illustrations/admin.svg',
-    points: ['Admin login is seeded in MongoDB', 'Doctors and patients stay in sync', 'Passwords are hashed before storage'],
+    role: 'patient',
+    label: 'Patient',
+    title: 'Register first, then sign in',
+    description: 'Fill the registration form to create your patient portal.',
+    note: 'Register once and the admin can view your details immediately.',
+    image: '/illustrations/patient.svg',
+    icon: FiHeart,
+    tone: 'rose',
+    points: ['Registration is saved in MongoDB', 'Doctors are picked from the live database list', 'Your account opens right after signup'],
   },
   {
     role: 'doctor',
     label: 'Doctor',
     title: 'Sign in with admin-issued credentials',
-    description: 'Use the email and temporary password created by the admin to open your dashboard.',
-    image: '/illustrations/doctor.svg',
+    description: 'Use the email and temporary password created by the admin.',
+    note: 'Doctor accounts are created in the admin dashboard and shared with you securely.',
+    image: doctorImage,
+    icon: FiUsers,
+    tone: 'teal',
     points: ['Assigned patients appear automatically', 'Appointments and records stay connected', 'Login details are stored securely'],
   },
   {
-    role: 'patient',
-    label: 'Patient',
-    title: 'Register first, then sign in',
-    description: 'Fill the registration form, pick a doctor if needed, and land in your own patient portal.',
-    image: '/illustrations/patient.svg',
-    points: ['Registration is saved in MongoDB', 'Doctors are picked from the live database list', 'Your account is ready after signup'],
+    role: 'admin',
+    label: 'Admin',
+    title: 'Control the clinic workspace',
+    description: 'Open the seeded admin account to manage doctors and patients.',
+    note: 'Use admin@gmail.con with as123 to open the admin dashboard.',
+    image: '/illustrations/admin.svg',
+    icon: FiShield,
+    tone: 'blue',
+    points: ['Admin login is seeded in MongoDB', 'You can create doctor accounts from the dashboard', 'Patients and records stay in sync'],
   },
 ]
 
@@ -69,17 +80,23 @@ function AuthBullet({ icon: Icon, title, text }) {
   )
 }
 
-function RoleCard({ card, active, onClick }) {
+function RoleTab({ card, active, onClick }) {
+  const Icon = card.icon
+
   return (
     <button
       type="button"
-      className={`role-switcher__button role-switcher__button--image ${active ? 'role-switcher__button--active' : ''}`}
+      className={`auth-role-tab auth-role-tab--${card.tone} ${active ? 'auth-role-tab--active' : ''}`}
       onClick={onClick}
+      aria-pressed={active}
     >
-      <span>{card.label}</span>
-      <strong>{card.title}</strong>
-      <small>{card.description}</small>
-      <img className="role-switcher__image" src={card.image} alt="" aria-hidden="true" />
+      <span className="auth-role-tab__icon" aria-hidden="true">
+        <Icon />
+      </span>
+      <span className="auth-role-tab__copy">
+        <strong>{card.label}</strong>
+        <small>{card.description}</small>
+      </span>
     </button>
   )
 }
@@ -88,7 +105,7 @@ export default function Login() {
   const navigate = useNavigate()
   const { bootstrapping, publicDoctors, session, login, registerPatient } = useMediConnect()
   const [role, setRole] = useState('admin')
-  const [mode, setMode] = useState('register')
+  const [mode, setMode] = useState('signin')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [signInForm, setSignInForm] = useState({
@@ -104,6 +121,23 @@ export default function Login() {
   }, [bootstrapping, navigate, session])
 
   const selectedRole = roleCards.find((card) => card.role === role) || roleCards[0]
+  const isPatient = role === 'patient'
+  const authNoteHeading =
+    role === 'admin' ? 'Seeded admin credentials' : role === 'doctor' ? 'Doctor access' : mode === 'register' ? 'Patient registration' : 'Patient sign in'
+  const authNoteCopy =
+    role === 'admin'
+      ? selectedRole.note
+      : role === 'doctor'
+        ? selectedRole.note
+        : mode === 'register'
+          ? selectedRole.note
+          : 'Use the email and password you created during registration.'
+  const submitLabel =
+    isPatient && mode === 'register'
+      ? 'Create patient account'
+      : isPatient
+        ? 'Open patient dashboard'
+        : 'Sign in to dashboard'
 
   const handleSignInChange = (event) => {
     const { name, value } = event.target
@@ -174,14 +208,28 @@ export default function Login() {
   return (
     <main className="auth-page">
       <section className="auth-shell">
-        <aside className="auth-copy">
-          <p className="auth-eyebrow">Role based access</p>
-          <h1 className="auth-title">MediConnect login and registration</h1>
-          <p className="auth-intro">
-            Use the admin portal to create doctors, let doctors sign in with admin-issued credentials, and register patients before they open their own dashboard.
-          </p>
+        <aside className="auth-copy auth-copy--hero">
+          <div className="auth-brand-row">
+            <Link to="/" className="auth-brand" aria-label="MediConnect home">
+              <BrandMark />
+              <span className="auth-brand__copy">
+                <strong>MediConnect</strong>
+                <small>Telemedicine &amp; EHR System</small>
+              </span>
+            </Link>
 
-          <div className="auth-bullet-list">
+            <span className="auth-pill">Role based access</span>
+          </div>
+
+          <div className="auth-copy__hero">
+            <p className="auth-eyebrow">Secure access</p>
+            <h1 className="auth-title">Better healthcare connected with care</h1>
+            <p className="auth-intro">
+              MediConnect brings patients, doctors, and administrators together on a secure platform for consultations, records, and everyday care.
+            </p>
+          </div>
+
+          <div className="auth-feature-list">
             <AuthBullet
               icon={FiShield}
               title="Secure admin flow"
@@ -204,17 +252,21 @@ export default function Login() {
             />
           </div>
 
-          <div className="auth-role-gallery">
-            {roleCards.map((card) => (
-              <article className={`auth-role-card ${role === card.role ? 'auth-role-card--active' : ''}`} key={card.role}>
-                <img src={card.image} alt="" aria-hidden="true" className="auth-role-card__image" />
-                <div>
-                  <span>{card.label}</span>
-                  <strong>{card.title}</strong>
-                  <p>{card.description}</p>
-                </div>
-              </article>
-            ))}
+          <div className="auth-hero-card">
+            <div className="auth-hero-card__visual">
+              <img src={doctorImage} alt="Doctor portrait" className="auth-hero-card__image" />
+              <span className="auth-hero-card__badge">Doctor access</span>
+            </div>
+            <div className="auth-hero-card__copy">
+              <strong>Admin creates the account, doctor signs in right away</strong>
+              <p>Share the temporary password from the admin dashboard and the doctor can open their dashboard immediately.</p>
+            </div>
+          </div>
+
+          <div className="auth-chip-row">
+            <span className="auth-chip">Seeded admin</span>
+            <span className="auth-chip">Doctor onboarding</span>
+            <span className="auth-chip">Patient intake</span>
           </div>
 
           <Link to="/" className="portal-button portal-button--ghost auth-home-link">
@@ -227,12 +279,12 @@ export default function Login() {
           <div className="auth-card__header">
             <span className="auth-card__eyebrow">Portal access</span>
             <h2>Choose your role</h2>
-            <p>Admin signs in with the seeded account, doctors use admin-issued credentials, and patients register before login.</p>
+            <p>Patient registration opens by default for the patient role. Admin and doctor users sign in with the credentials created in MediConnect.</p>
           </div>
 
-          <div className="role-switcher" role="tablist" aria-label="Role selection">
+          <div className="auth-role-tabs" role="tablist" aria-label="Role selection">
             {roleCards.map((card) => (
-              <RoleCard
+              <RoleTab
                 key={card.role}
                 card={card}
                 active={role === card.role}
@@ -241,23 +293,28 @@ export default function Login() {
             ))}
           </div>
 
-          <div className="auth-role-preview">
-            <img src={selectedRole.image} alt="" aria-hidden="true" className="auth-role-preview__image" />
-            <div className="auth-role-preview__copy">
-              <span className="auth-role-preview__eyebrow">Selected role</span>
+          <section className={`auth-role-summary auth-role-summary--${selectedRole.tone}`}>
+            <img src={selectedRole.image} alt="" aria-hidden="true" className="auth-role-summary__image" />
+            <div className="auth-role-summary__copy">
+              <span className="auth-role-summary__eyebrow">Selected role</span>
               <strong>{selectedRole.title}</strong>
               <p>{selectedRole.description}</p>
-              <ul>
-                {selectedRole.points.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
-              </ul>
             </div>
+            <ul className="auth-role-summary__points">
+              {selectedRole.points.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          </section>
+
+          <div className="auth-notes">
+            <strong>{authNoteHeading}</strong>
+            <p>{authNoteCopy}</p>
           </div>
 
-          {role === 'patient' ? (
+          {isPatient ? (
             <>
-              <div className="auth-mode-toggle">
+              <div className="auth-mode-toggle" role="tablist" aria-label="Patient access mode">
                 <button
                   type="button"
                   className={mode === 'register' ? 'auth-mode-toggle__button auth-mode-toggle__button--active' : 'auth-mode-toggle__button'}
@@ -325,7 +382,7 @@ export default function Login() {
                     </label>
                   </div>
 
-                  <label className="auth-field">
+                  <label className="auth-field auth-field--full">
                     Condition / reason
                     <input name="condition" value={patientForm.condition} onChange={handlePatientChange} placeholder="Heart care, migraine, fever..." />
                   </label>
@@ -348,17 +405,17 @@ export default function Login() {
                     </label>
                   </div>
 
-                  <label className="auth-field">
+                  <label className="auth-field auth-field--full">
                     Address
                     <input name="address" value={patientForm.address} onChange={handlePatientChange} placeholder="City, state" />
                   </label>
 
-                  <label className="auth-field">
+                  <label className="auth-field auth-field--full">
                     Notes
                     <textarea name="notes" rows="3" value={patientForm.notes} onChange={handlePatientChange} placeholder="Any extra information for the doctor" />
                   </label>
 
-                  <div className="auth-notes auth-notes--soft">
+                  <div className="auth-notes auth-notes--soft auth-field--full">
                     <strong>Available doctors from the database</strong>
                     <div className="auth-doctor-list">
                       {doctorOptions.length ? (
@@ -377,7 +434,7 @@ export default function Login() {
                   {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
 
                   <button type="submit" className="portal-button auth-submit">
-                    Create patient account
+                    {submitLabel}
                     <FiChevronRight aria-hidden="true" />
                   </button>
                 </form>
@@ -402,7 +459,7 @@ export default function Login() {
                   {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
 
                   <button type="submit" className="portal-button auth-submit">
-                    Open patient dashboard
+                    {submitLabel}
                     <FiChevronRight aria-hidden="true" />
                   </button>
                 </form>
@@ -431,25 +488,11 @@ export default function Login() {
                 </div>
               </label>
 
-              <div className="auth-notes">
-                {role === 'admin' ? (
-                  <>
-                    <strong>Seeded admin credentials</strong>
-                    <p>Use <b>admin@gmail.con</b> with <b>as123</b> to open the admin dashboard.</p>
-                  </>
-                ) : (
-                  <>
-                    <strong>Doctor access</strong>
-                    <p>Doctors sign in with the email and temporary password created by the admin panel.</p>
-                  </>
-                )}
-              </div>
-
               {message ? <p className="auth-feedback auth-feedback--success">{message}</p> : null}
               {error ? <p className="auth-feedback auth-feedback--error">{error}</p> : null}
 
               <button type="submit" className="portal-button auth-submit">
-                Sign in to dashboard
+                {submitLabel}
                 <FiChevronRight aria-hidden="true" />
               </button>
             </form>

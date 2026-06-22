@@ -71,10 +71,10 @@ function AdminDashboardPage() {
       <SectionHeader
         eyebrow="Admin overview"
         title="Welcome back, Admin"
-        description="Keep every doctors, patients, appointments, and records in one clean control center."
+        description="Keep doctors, patients, appointments, and records in one clean control center."
         action={
           <div className="portal-action-row">
-            <Link className="portal-button" to="/admin/doctors">
+            <Link className="portal-button" to="/admin/doctors#add-doctor">
               Add doctor
               <FiArrowRight aria-hidden="true" />
             </Link>
@@ -229,8 +229,8 @@ function AdminDoctorsPage() {
 
     setNotice(
       result.temporaryPassword
-        ? `Created ${result.doctor.name}. Temporary password: ${result.temporaryPassword}`
-        : `Created ${result.doctor.name}. The login is ready for the doctor dashboard.`,
+        ? `Created ${result.doctor.name} (${result.doctor.email}). Temporary password: ${result.temporaryPassword}`
+        : `Created ${result.doctor.name} (${result.doctor.email}). The login is ready for the doctor dashboard.`,
     )
     setError('')
     setForm({
@@ -258,7 +258,7 @@ function AdminDoctorsPage() {
       />
 
       <section className="portal-grid portal-grid--two portal-grid--top">
-        <Panel title="Add Doctor" description="These details are used by the doctor to sign in">
+        <Panel id="add-doctor" title="Add Doctor" description="These details are used by the doctor to sign in">
           <form className="portal-form" onSubmit={handleSubmit}>
             <div className="portal-form__grid">
               <label className="portal-field">
@@ -269,7 +269,7 @@ function AdminDoctorsPage() {
                 Email
                 <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="doctor@mediconnect.com" />
               </label>
-            <label className="portal-field">
+              <label className="portal-field">
                 Temporary password
                 <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Temporary login password" />
               </label>
@@ -286,8 +286,13 @@ function AdminDoctorsPage() {
                 <input name="fee" value={form.fee} onChange={handleChange} placeholder="INR 900" />
               </label>
               <label className="portal-field">
-                Treats
-                <input name="treats" value={form.treats} onChange={handleChange} placeholder="Heart care, Blood pressure" />
+                Treats / conditions
+                <input
+                  name="treats"
+                  value={form.treats}
+                  onChange={handleChange}
+                  placeholder="Heart care, blood pressure, migraine"
+                />
               </label>
               <label className="portal-field">
                 Availability

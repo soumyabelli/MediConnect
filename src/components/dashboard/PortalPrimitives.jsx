@@ -22,9 +22,9 @@ export function SectionHeader({ eyebrow, title, description, action }) {
   )
 }
 
-export function Panel({ title, description, action, children, className = '' }) {
+export function Panel({ title, description, action, children, className = '', ...props }) {
   return (
-    <section className={`portal-panel ${className}`.trim()}>
+    <section className={`portal-panel ${className}`.trim()} {...props}>
       {(title || description || action) && (
         <header className="portal-panel__header">
           <div>

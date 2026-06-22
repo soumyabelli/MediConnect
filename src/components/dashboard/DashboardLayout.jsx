@@ -36,7 +36,7 @@ const roleConfig = {
         title: 'Doctors',
         items: [
           { label: 'All Doctors', to: '/admin/doctors', icon: FiUsers },
-          { label: 'Add Doctor', to: '/admin/doctors', icon: FiUser },
+          { label: 'Add Doctor', action: 'scroll', target: 'add-doctor', icon: FiUser },
           { label: 'Doctor Approvals', to: '/admin/doctors/approvals', icon: FiClipboard },
         ],
       },
@@ -176,6 +176,19 @@ export default function DashboardLayout() {
     navigate('/login', { replace: true })
   }
 
+  const handleSidebarAction = (item) => {
+    if (item.action === 'scroll' && item.target) {
+      setSidebarOpen(false)
+
+      window.requestAnimationFrame(() => {
+        document.getElementById(item.target)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+      })
+    }
+  }
+
   return (
     <div className={`portal-shell portal-shell--${config.accent}`}>
       <aside className={`portal-sidebar ${sidebarOpen ? 'portal-sidebar--open' : ''}`}>
@@ -193,18 +206,30 @@ export default function DashboardLayout() {
               <h2>{section.title}</h2>
               <div className="portal-nav-list">
                 {section.items.map((item) => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    end={item.to === `/${session?.role}`}
-                    onClick={() => setSidebarOpen(false)}
-                    className={({ isActive }) =>
-                      isActive ? 'portal-nav-link portal-nav-link--active' : 'portal-nav-link'
-                    }
-                  >
-                    <item.icon aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </NavLink>
+                  item.action === 'scroll' ? (
+                    <button
+                      key={item.label}
+                      type="button"
+                      className="portal-nav-link portal-nav-link--button"
+                      onClick={() => handleSidebarAction(item)}
+                    >
+                      <item.icon aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </button>
+                  ) : (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === `/${session?.role}`}
+                      onClick={() => setSidebarOpen(false)}
+                      className={({ isActive }) =>
+                        isActive ? 'portal-nav-link portal-nav-link--active' : 'portal-nav-link'
+                      }
+                    >
+                      <item.icon aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  )
                 ))}
               </div>
             </section>
