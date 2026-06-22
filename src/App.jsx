@@ -1,8 +1,10 @@
 import './App.css'
 import './dashboard.css'
+import './doctor-dashboard.css'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import SiteLayout from './components/SiteLayout'
 import DashboardLayout from './components/dashboard/DashboardLayout'
+import DoctorLayout from './components/dashboard/DoctorLayout'
 import ProtectedDashboardRoute from './components/dashboard/ProtectedDashboardRoute'
 import AboutUs from './pages/AboutUs'
 import ContactUs from './pages/ContactUs'
@@ -84,7 +86,7 @@ export default function App() {
         </Route>
 
         <Route element={<ProtectedDashboardRoute role="doctor" />}>
-          <Route path="doctor" element={<DashboardLayout />}>
+          <Route path="doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorDashboardPage />} />
             <Route path="patients" element={<DoctorPatientsPage />} />
             <Route path="schedule" element={<DoctorSchedulePage />} />

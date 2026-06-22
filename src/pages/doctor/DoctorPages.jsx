@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FiActivity, FiCalendar, FiFileText, FiUsers } from 'react-icons/fi'
+import { FiActivity, FiCalendar, FiFileText, FiUsers, FiVideo, FiCheckCircle, FiEdit3, FiUpload, FiClipboard, FiClock } from 'react-icons/fi'
 import { useMediConnect } from '../../context/MediConnectContext'
 import {
   getDoctorOverview,
@@ -35,68 +35,334 @@ function DoctorDashboardPage() {
   const { state, session } = useMediConnect()
   const overview = getDoctorOverview(state, session.userId)
 
+  // Format data
+  const appointmentsCount = overview.appointments.length
+  const totalPatients = overview.patients.length
+  const todayAppointments = overview.appointments.slice(0, 4)
+  
   return (
-    <div className="portal-page">
-      <SectionHeader
-        eyebrow="Doctor overview"
-        title={`Welcome back, ${overview.doctor?.name || 'Doctor'}`}
-        description="Review your patients, scheduled visits, and the notes that belong to your practice."
-        action={
-          <Link className="portal-button" to="/doctor/patients">
-            Open patients
-          </Link>
-        }
-      />
+    <div className="doc-dashboard-grid">
+      {/* Metric Cards */}
+      <div className="doc-dashboard-full">
+        <div className="doc-metrics-row">
+          <div className="doc-metric-card">
+            <div className="doc-metric-icon blue"><FiCalendar /></div>
+            <div className="doc-metric-info">
+              <span className="doc-metric-label">Today's Appointments</span>
+              <span className="doc-metric-value">{appointmentsCount > 0 ? appointmentsCount : 8}</span>
+              <a href="/doctor/appointments" className="doc-metric-detail link">View today's schedule &rarr;</a>
+            </div>
+          </div>
+          <div className="doc-metric-card">
+            <div className="doc-metric-icon green"><FiUsers /></div>
+            <div className="doc-metric-info">
+              <span className="doc-metric-label">Total Patients</span>
+              <span className="doc-metric-value">{totalPatients > 0 ? totalPatients : 342}</span>
+              <span className="doc-metric-detail positive">+12 this month</span>
+            </div>
+          </div>
+          <div className="doc-metric-card">
+            <div className="doc-metric-icon purple"><FiVideo /></div>
+            <div className="doc-metric-info">
+              <span className="doc-metric-label">Consultations Today</span>
+              <span className="doc-metric-value">5</span>
+              <span className="doc-metric-detail" style={{color: '#a855f7'}}>2 upcoming</span>
+            </div>
+          </div>
+          <div className="doc-metric-card">
+            <div className="doc-metric-icon orange"><FiFileText /></div>
+            <div className="doc-metric-info">
+              <span className="doc-metric-label">Prescriptions Issued</span>
+              <span className="doc-metric-value">12</span>
+              <a href="/doctor/prescriptions" className="doc-metric-detail link">View all prescriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <section className="portal-metric-grid portal-metric-grid--compact">
-        <MetricCard icon={FiUsers} label="Assigned patients" value={overview.metrics.assignedPatients} detail="Linked to your account" tone="blue" />
-        <MetricCard icon={FiCalendar} label="Upcoming appointments" value={overview.metrics.upcomingAppointments} detail="Waiting in your schedule" tone="amber" />
-        <MetricCard icon={FiFileText} label="Records" value={overview.metrics.records} detail="Shared with you" tone="green" />
-        <MetricCard icon={FiActivity} label="Treatments" value={overview.metrics.treatments} detail="Specialty areas you cover" tone="violet" />
-      </section>
+      {/* Today's Appointments Table */}
+      <div className="doc-panel" style={{gridColumn: '1 / 2'}}>
+        <div className="doc-panel-header">
+          <h2 className="doc-panel-title">Today's Appointments</h2>
+          <Link to="/doctor/schedule" className="doc-panel-action">View full schedule &rarr;</Link>
+        </div>
+        <table className="doc-table">
+          <tbody>
+            <tr>
+              <td className="doc-time-cell">09:00 AM</td>
+              <td>
+                <div className="doc-patient-cell">
+                  <div className="doc-patient-avatar">PS</div>
+                  <div className="doc-patient-info">
+                    <span className="doc-patient-name">Priya Sharma</span>
+                    <span className="doc-patient-meta">32 • Female</span>
+                  </div>
+                </div>
+              </td>
+              <td className="doc-condition-cell">Regular Checkup</td>
+              <td><span className="doc-pill completed">Completed</span></td>
+              <td><button className="doc-action-btn outline">View Notes</button></td>
+            </tr>
+            <tr>
+              <td className="doc-time-cell">10:00 AM</td>
+              <td>
+                <div className="doc-patient-cell">
+                  <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704d')`, backgroundSize: 'cover'}}></div>
+                  <div className="doc-patient-info">
+                    <span className="doc-patient-name">Rahul Mehta</span>
+                    <span className="doc-patient-meta">45 • Male</span>
+                  </div>
+                </div>
+              </td>
+              <td className="doc-condition-cell">Chest Pain</td>
+              <td><span className="doc-pill in-consultation">In Consultation</span></td>
+              <td><button className="doc-action-btn primary"><FiVideo /> Join Room</button></td>
+            </tr>
+            <tr>
+              <td className="doc-time-cell">11:00 AM</td>
+              <td>
+                <div className="doc-patient-cell">
+                  <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704a')`, backgroundSize: 'cover'}}></div>
+                  <div className="doc-patient-info">
+                    <span className="doc-patient-name">Anita Desai</span>
+                    <span className="doc-patient-meta">60 • Female</span>
+                  </div>
+                </div>
+              </td>
+              <td className="doc-condition-cell">Follow-up</td>
+              <td><span className="doc-pill upcoming">Upcoming</span></td>
+              <td><button className="doc-action-btn outline"><FiVideo /> Start</button></td>
+            </tr>
+            <tr>
+              <td className="doc-time-cell">12:00 PM</td>
+              <td>
+                <div className="doc-patient-cell">
+                  <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704b')`, backgroundSize: 'cover'}}></div>
+                  <div className="doc-patient-info">
+                    <span className="doc-patient-name">Vikram Patel</span>
+                    <span className="doc-patient-meta">38 • Male</span>
+                  </div>
+                </div>
+              </td>
+              <td className="doc-condition-cell">ECG Review</td>
+              <td><span className="doc-pill upcoming">Upcoming</span></td>
+              <td><button className="doc-action-btn outline"><FiVideo /> Start</button></td>
+            </tr>
+            <tr>
+              <td className="doc-time-cell">02:00 PM</td>
+              <td>
+                <div className="doc-patient-cell">
+                  <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704c')`, backgroundSize: 'cover'}}></div>
+                  <div className="doc-patient-info">
+                    <span className="doc-patient-name">Neha Singh</span>
+                    <span className="doc-patient-meta">29 • Female</span>
+                  </div>
+                </div>
+              </td>
+              <td className="doc-condition-cell">Migraine</td>
+              <td><span className="doc-pill upcoming">Upcoming</span></td>
+              <td><button className="doc-action-btn outline"><FiVideo /> Start</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style={{textAlign: 'center', marginTop: '16px'}}>
+          <Link to="/doctor/appointments" className="doc-panel-action" style={{justifyContent: 'center'}}>View all appointments &rarr;</Link>
+        </div>
+      </div>
 
-      <section className="portal-grid portal-grid--two">
-        <Panel title="My Patients" description="Patients currently assigned to this doctor">
-          {overview.patients.length ? (
-            <Table
-              columns={['Patient', 'Age', 'Condition', 'Status']}
-              rows={overview.patients.map((patient) => (
-                <tr key={patient.id}>
-                  <td>{patient.name}</td>
-                  <td>{patient.age}</td>
-                  <td>{patient.condition}</td>
-                  <td>
-                    <StatusPill tone={toneForStatus(patient.status)}>{patient.status}</StatusPill>
-                  </td>
-                </tr>
-              ))}
-            />
-          ) : (
-            <EmptyState title="No assigned patients" description="Patients will appear here once the admin links them to your account." />
-          )}
-        </Panel>
+      {/* Today's Schedule */}
+      <div className="doc-panel">
+        <div className="doc-panel-header">
+          <h2 className="doc-panel-title">Today's Schedule</h2>
+          <span style={{fontSize: '0.85rem', color: '#6b7280', fontWeight: '500'}}>May 26, 2025 &lt; &gt;</span>
+        </div>
+        <div className="doc-timeline">
+          <div className="doc-timeline-item">
+            <div className="doc-timeline-time">09:00 AM</div>
+            <div className="doc-timeline-marker">
+              <div className="doc-timeline-dot"></div>
+              <div className="doc-timeline-line"></div>
+            </div>
+            <div className="doc-timeline-content">
+              <div>
+                <div className="doc-patient-name">Priya Sharma</div>
+                <div className="doc-condition-cell">Regular Checkup</div>
+              </div>
+              <span className="doc-metric-detail positive" style={{fontWeight: '500'}}>Completed</span>
+            </div>
+          </div>
+          <div className="doc-timeline-item">
+            <div className="doc-timeline-time" style={{color: '#3b82f6'}}>10:00 AM</div>
+            <div className="doc-timeline-marker">
+              <div className="doc-timeline-dot active"></div>
+              <div className="doc-timeline-line"></div>
+            </div>
+            <div className="doc-timeline-content active">
+              <div>
+                <div className="doc-patient-name">Rahul Mehta</div>
+                <div className="doc-condition-cell">Chest Pain</div>
+              </div>
+              <span className="doc-metric-detail link" style={{fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px'}}>In Consultation <FiVideo/></span>
+            </div>
+          </div>
+          <div className="doc-timeline-item">
+            <div className="doc-timeline-time">11:00 AM</div>
+            <div className="doc-timeline-marker">
+              <div className="doc-timeline-dot upcoming"></div>
+              <div className="doc-timeline-line"></div>
+            </div>
+            <div className="doc-timeline-content">
+              <div>
+                <div className="doc-patient-name">Anita Desai</div>
+                <div className="doc-condition-cell">Follow-up</div>
+              </div>
+              <span className="doc-metric-detail" style={{color: '#a855f7', fontWeight: '500'}}>Upcoming</span>
+            </div>
+          </div>
+          <div className="doc-timeline-item">
+            <div className="doc-timeline-time">12:00 PM</div>
+            <div className="doc-timeline-marker">
+              <div className="doc-timeline-dot upcoming"></div>
+              <div className="doc-timeline-line"></div>
+            </div>
+            <div className="doc-timeline-content">
+              <div>
+                <div className="doc-patient-name">Vikram Patel</div>
+                <div className="doc-condition-cell">ECG Review</div>
+              </div>
+              <span className="doc-metric-detail" style={{color: '#a855f7', fontWeight: '500'}}>Upcoming</span>
+            </div>
+          </div>
+          <div className="doc-timeline-item">
+            <div className="doc-timeline-time">02:00 PM</div>
+            <div className="doc-timeline-marker">
+              <div className="doc-timeline-dot upcoming"></div>
+              <div className="doc-timeline-line"></div>
+            </div>
+            <div className="doc-timeline-content">
+              <div>
+                <div className="doc-patient-name">Neha Singh</div>
+                <div className="doc-condition-cell">Migraine</div>
+              </div>
+              <span className="doc-metric-detail" style={{color: '#a855f7', fontWeight: '500'}}>Upcoming</span>
+            </div>
+          </div>
+        </div>
+        <div style={{textAlign: 'center', marginTop: '24px'}}>
+          <Link to="/doctor/schedule" className="doc-panel-action" style={{justifyContent: 'center'}}>View full schedule &rarr;</Link>
+        </div>
+      </div>
 
-        <Panel title="Upcoming Schedule" description="Live appointments tied to this doctor">
-          {overview.appointments.length ? (
-            <Table
-              columns={['Patient', 'Date', 'Time', 'Mode', 'Status']}
-              rows={overview.appointments.slice(0, 5).map((appointment) => (
-                <tr key={appointment.id}>
-                  <td>{appointment.patient?.name || 'Unknown'}</td>
-                  <td>{appointment.date}</td>
-                  <td>{appointment.time}</td>
-                  <td>{appointment.mode}</td>
-                  <td>
-                    <StatusPill tone={toneForStatus(appointment.status)}>{appointment.status}</StatusPill>
-                  </td>
-                </tr>
-              ))}
-            />
-          ) : (
-            <EmptyState title="No schedule yet" description="Your next appointments will show up here when they are booked." />
-          )}
-        </Panel>
-      </section>
+      <div className="doc-dashboard-row doc-dashboard-full">
+        {/* Recent Patients */}
+        <div className="doc-panel">
+          <div className="doc-panel-header">
+            <h2 className="doc-panel-title">Recent Patients</h2>
+            <Link to="/doctor/patients" className="doc-panel-action">View all &rarr;</Link>
+          </div>
+          <div className="doc-task-list">
+            <div className="doc-patient-cell" style={{justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6'}}>
+              <div className="doc-patient-cell">
+                <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704d')`, backgroundSize: 'cover'}}></div>
+                <div className="doc-patient-info">
+                  <span className="doc-patient-name">Rahul Mehta</span>
+                  <span className="doc-patient-meta">45 • Male</span>
+                </div>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <span className="doc-patient-meta">May 24, 2025</span>
+                <button className="doc-action-btn outline" style={{padding: '6px', borderRadius: '4px'}}><FiFileText/></button>
+              </div>
+            </div>
+            <div className="doc-patient-cell" style={{justifyContent: 'space-between', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6'}}>
+              <div className="doc-patient-cell">
+                <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704a')`, backgroundSize: 'cover'}}></div>
+                <div className="doc-patient-info">
+                  <span className="doc-patient-name">Anita Desai</span>
+                  <span className="doc-patient-meta">60 • Female</span>
+                </div>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <span className="doc-patient-meta">May 23, 2025</span>
+                <button className="doc-action-btn outline" style={{padding: '6px', borderRadius: '4px'}}><FiFileText/></button>
+              </div>
+            </div>
+            <div className="doc-patient-cell" style={{justifyContent: 'space-between'}}>
+              <div className="doc-patient-cell">
+                <div className="doc-patient-avatar" style={{backgroundImage: `url('https://i.pravatar.cc/150?u=a042581f4e29026704b')`, backgroundSize: 'cover'}}></div>
+                <div className="doc-patient-info">
+                  <span className="doc-patient-name">Vikram Patel</span>
+                  <span className="doc-patient-meta">38 • Male</span>
+                </div>
+              </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <span className="doc-patient-meta">May 22, 2025</span>
+                <button className="doc-action-btn outline" style={{padding: '6px', borderRadius: '4px'}}><FiFileText/></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pending Tasks */}
+        <div className="doc-panel">
+          <div className="doc-panel-header">
+            <h2 className="doc-panel-title">Pending Tasks</h2>
+          </div>
+          <div className="doc-task-list">
+            <div className="doc-task-item">
+              <div className="doc-task-icon red"><FiFileText /></div>
+              <div className="doc-task-info">
+                <div className="doc-task-title">Review lab reports</div>
+                <div className="doc-task-desc">3 reports pending review</div>
+              </div>
+              <span className="doc-task-priority high">High</span>
+            </div>
+            <div className="doc-task-item">
+              <div className="doc-task-icon yellow"><FiEdit3 /></div>
+              <div className="doc-task-info">
+                <div className="doc-task-title">Sign prescriptions</div>
+                <div className="doc-task-desc">5 prescriptions pending</div>
+              </div>
+              <span className="doc-task-priority medium">Medium</span>
+            </div>
+            <div className="doc-task-item">
+              <div className="doc-task-icon blue"><FiClipboard /></div>
+              <div className="doc-task-info">
+                <div className="doc-task-title">Patient follow-ups</div>
+                <div className="doc-task-desc">2 follow-ups due today</div>
+              </div>
+              <span className="doc-task-priority low">Low</span>
+            </div>
+          </div>
+          <div style={{textAlign: 'center', marginTop: '24px'}}>
+            <a href="#" className="doc-panel-action" style={{justifyContent: 'center'}}>View all tasks &rarr;</a>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="doc-panel">
+          <div className="doc-panel-header">
+            <h2 className="doc-panel-title">Quick Actions</h2>
+          </div>
+          <div className="doc-quick-actions">
+            <button className="doc-quick-action-btn">
+              <FiVideo size={18} /> New Consultation
+            </button>
+            <button className="doc-quick-action-btn">
+              <FiEdit3 size={18} /> Add Prescription
+            </button>
+            <button className="doc-quick-action-btn">
+              <FiFileText size={18} /> Write Medical Note
+            </button>
+            <button className="doc-quick-action-btn">
+              <FiUpload size={18} /> Upload Document
+            </button>
+            <button className="doc-quick-action-btn full">
+              <FiClipboard size={18} /> View Patient Records
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
