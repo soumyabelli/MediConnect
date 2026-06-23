@@ -71,7 +71,7 @@ export default function AboutUs() {
             to bring consultations, records, and coordination into one steady flow.
           </p>
           <p>
-            The goal is not just to digitize forms. It is to make the whole experience
+            The goal is not just to digitize forms. It is also to make the whole experience
             feel clearer for patients and less chaotic for clinicians.
           </p>
         </article>
@@ -80,7 +80,7 @@ export default function AboutUs() {
           <div className="metric-stack">
             <div className="metric-stack__item">
               <strong>24/7</strong>
-              <span>Access to care pathways</span>
+              <span>Access to care pathways please</span>
             </div>
             <div className="metric-stack__item">
               <strong>1</strong>
@@ -88,7 +88,7 @@ export default function AboutUs() {
             </div>
             <div className="metric-stack__item">
               <strong>100%</strong>
-              <span>Encrypted record sharing is provided</span>
+              <span>Encrypted record sharing is provided please see it</span>
             </div>
           </div>
         </article>
