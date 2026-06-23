@@ -115,7 +115,7 @@ function AdminDashboardPage() {
           />
         </Panel>
 
-        <Panel title="Recent Patients" description="Recently registered patients and their assigned doctor">
+        <Panel title="Recent Patients details" description="Recently registered patients and their assigned doctor">
           <Table
             columns={['Patient', 'Age', 'Gender', 'Doctor', 'Status']}
             rows={overview.recentPatients.map((patient) => (

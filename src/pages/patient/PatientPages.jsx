@@ -75,7 +75,7 @@ function PatientDashboardPage() {
               <p>Use the records page to review what your doctor has already shared.</p>
             </article>
             <article className="portal-note">
-              <strong>Check new appointments</strong>
+              <strong>Check new appointments here</strong>
               <p>Appointment changes will appear here and in the schedule screen.</p>
             </article>
             <article className="portal-note">
