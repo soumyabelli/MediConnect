@@ -45,6 +45,8 @@ import {
   PatientProfilePage,
   PatientRecordsPage,
 } from './pages/patient/PatientPages'
+import BookAppointmentPage from './pages/patient/BookAppointmentPage'
+
 
 export default function App() {
   return (
@@ -98,11 +100,13 @@ export default function App() {
         <Route element={<ProtectedDashboardRoute role="patient" />}>
           <Route path="patient" element={<DashboardLayout />}>
             <Route index element={<PatientDashboardPage />} />
+            <Route path="book" element={<BookAppointmentPage />} />
             <Route path="appointments" element={<PatientAppointmentsPage />} />
             <Route path="records" element={<PatientRecordsPage />} />
             <Route path="profile" element={<PatientProfilePage />} />
           </Route>
         </Route>
+
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

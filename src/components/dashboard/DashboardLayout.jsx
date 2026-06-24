@@ -129,6 +129,7 @@ const roleConfig = {
         title: 'My Portal',
         items: [
           { label: 'Dashboard', to: '/patient', icon: FiGrid },
+          { label: 'Book appointment', to: '/patient/book', icon: FiCalendar },
           { label: 'Appointments', to: '/patient/appointments', icon: FiCalendar },
           { label: 'Records', to: '/patient/records', icon: FiFileText },
         ],

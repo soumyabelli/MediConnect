@@ -71,3 +71,68 @@ svg {
   background: #0d54e2;
   color: rgb(22, 15, 15);
 }
+
+/* ==========================
+   Login hero alignment fixes
+   ========================== */
+
+/* Prevent the doctor image from extending too far below its container */
+.login-doctor-img-container {
+  bottom: -10px;
+}
+
+/* Keep the float badge inside the hero area to avoid scroll/overlap */
+.login-float-badge {
+  bottom: auto;
+  top: 42px;
+  right: 0;
+}
+
+
+
+@media (max-width: 1024px) {
+  /* On smaller screens the layout stacks; ensure nothing overflows */
+  .login-doctor-img-container {
+    bottom: auto;
+  }
+
+  .login-float-badge {
+    bottom: auto;
+    right: auto;
+  }
+}
+
+/* Premium spacing: doctor on the left, text slightly shifted right */
+@media (min-width: 1025px) {
+  /* Align visual cluster higher so it doesn't feel "down" */
+  .login-hero-visual-area {
+    align-items: flex-start;
+    padding-top: 18px;
+    gap: 18px;
+  }
+
+  /* Pull doctor closer to the left edge */
+  .login-doctor-img-container {
+    left: 0;
+    top: 0;
+    bottom: auto;
+    /* shrink the empty gap */
+    width: 50%;
+  }
+
+  /* Shift float badge to the right so it doesn't collide */
+  .login-float-badge {
+    top: 62px;
+    bottom: auto;
+    right: 0;
+    width: 52%;
+  }
+
+  /* Move left content (headline/desc/features) slightly right to balance space */
+  .login-hero-body {
+    margin-left: 42px;
+  }
+}
+
+
+
