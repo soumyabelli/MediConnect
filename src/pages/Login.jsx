@@ -136,7 +136,7 @@ export default function Login() {
     if (role === 'admin') {
       return {
         heading: 'Seeded admin credentials',
-        text: 'Use admin@gmail.com with 123 to open the admin dashboard.'
+        text: 'Use admin@gmail.com with 123 to open the admin dashboard and do the activity.'
       }
     }
     if (role === 'doctor') {
