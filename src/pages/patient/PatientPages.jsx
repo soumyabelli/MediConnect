@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FiCalendar, FiFileText, FiHeart, FiMessageSquare, FiUsers } from 'react-icons/fi'
+import { useEffect } from 'react'
 import { useMediConnect } from '../../context/MediConnectContext'
 import {
   getPatientOverview,
@@ -29,8 +30,14 @@ function toneForStatus(status) {
 }
 
 function PatientDashboardPage() {
-  const { state, session } = useMediConnect()
-  const overview = getPatientOverview(state, session.userId)
+  const { state, session, syncDashboard } = useMediConnect()
+  const overview = getPatientOverview(state, session?.userId)
+
+  useEffect(() => {
+    if (session?.token) {
+      syncDashboard(session.token)
+    }
+  }, [session?.token, syncDashboard])
 
   return (
     <div className="portal-page">
@@ -55,15 +62,22 @@ function PatientDashboardPage() {
       <section className="portal-grid portal-grid--two">
         <Panel title="My doctor" description="The clinician assigned to your account">
           {overview.doctor ? (
-            <div className="portal-doctor-card">
-              <div className="portal-doctor-card__avatar">{overview.doctor.name.slice(0, 2)}</div>
-              <div>
-                <strong>{overview.doctor.name}</strong>
-                <p>{overview.doctor.specialization}</p>
-                <span>{overview.doctor.treats}</span>
-              </div>
-            </div>
-          ) : (
+                <div className="portal-doctor-card">
+                  <div className="portal-doctor-card__avatar">{(overview.doctor.name || 'D').slice(0, 2)}</div>
+                  <div>
+                    <strong>{overview.doctor.name || 'Doctor'}</strong>
+                    <p>{overview.doctor.specialization || '—'}</p>
+                    <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
+                      Status: {overview.doctor.availability || overview.doctor.status || 'Available'}
+                    </div>
+                    {overview.doctor.phone ? (
+                      <div style={{ color: '#6b7280', fontSize: 13, marginTop: 2 }}>
+                        Contact: {overview.doctor.phone}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
             <EmptyState title="No doctor assigned yet" description="The admin team can link your patient profile to a doctor at any time." />
           )}
         </Panel>
@@ -90,8 +104,14 @@ function PatientDashboardPage() {
 }
 
 function PatientAppointmentsPage() {
-  const { state, session } = useMediConnect()
+  const { state, session, syncDashboard } = useMediConnect()
   const overview = getPatientOverview(state, session.userId)
+
+  useEffect(() => {
+    if (session?.token) {
+      syncDashboard(session.token)
+    }
+  }, [session?.token, syncDashboard])
 
   return (
     <div className="portal-page">
@@ -114,7 +134,7 @@ function PatientAppointmentsPage() {
             columns={['Doctor', 'Date', 'Time', 'Mode', 'Reason', 'Status']}
             rows={overview.appointments.map((appointment) => (
               <tr key={appointment.id}>
-                <td>{appointment.doctor?.name || 'Unassigned'}</td>
+                <td>{appointment.doctor?.name || appointment.doctorId || 'Unassigned'}</td>
                 <td>{appointment.date}</td>
                 <td>{appointment.time}</td>
                 <td>{appointment.mode}</td>

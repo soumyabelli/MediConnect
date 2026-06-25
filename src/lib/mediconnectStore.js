@@ -93,9 +93,19 @@ function getDoctorOverview(state, doctorId) {
 
 function getPatientOverview(state, patientId) {
   const patient = getPatientById(state, patientId)
-  const doctor = patient ? getDoctorById(state, patient.assignedDoctorId) : null
   const appointments = getAppointmentsForPatient(state, patientId)
   const records = getRecordsForPatient(state, patientId)
+
+  // Prefer doctor from latest pending/next appointment (works for freshly booked cases)
+  const sortedUpcoming = [...appointments].sort((a, b) => {
+    const aDate = a?.date ? String(a.date) : ''
+    const bDate = b?.date ? String(b.date) : ''
+    return aDate < bDate ? 1 : -1
+  })
+
+  const latestAppointment = sortedUpcoming.find((a) => a?.doctor?.id) || sortedUpcoming.find((a) => a?.doctor) || null
+  const doctorFromLatestAppointment = latestAppointment?.doctor || null
+  const doctor = doctorFromLatestAppointment || (patient ? getDoctorById(state, patient.assignedDoctorId) : null)
 
   return {
     patient,
