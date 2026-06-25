@@ -192,7 +192,7 @@ export default function Login() {
               </div>
               <div className="login-feature-text">
                 <span className="login-feature-title">Secure &amp; Confidential</span>
-                <span className="login-feature-desc">Your data is safe with end-to-end encryption</span>
+                <span className="login-feature-desc">Your data is safe with end-to-end encryption here</span>
               </div>
             </div>
 
