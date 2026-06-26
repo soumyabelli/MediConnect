@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
@@ -10,6 +10,30 @@ function readApiError(error, fallback = 'Something went wrong.') {
 
 async function fetchPublicDoctors() {
   const { data } = await api.get('/public/doctors')
+  return data
+}
+
+async function fetchAppointmentAvailability(token, doctorId, appointmentDate) {
+  const { data } = await api.get('/appointments/availability', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    params: {
+      doctorId,
+      appointmentDate,
+    },
+  })
+
+  return data
+}
+
+async function fetchAppointmentById(token, appointmentId) {
+  const { data } = await api.get(`/appointments/${appointmentId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
   return data
 }
 
@@ -41,12 +65,44 @@ async function createDoctor(token, payload) {
   return data
 }
 
+async function createRecord(token, payload) {
+  const { data } = await api.post('/records', payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+async function updateAppointmentStatus(token, appointmentId, payload) {
+  const { data } = await api.patch(`/appointments/${appointmentId}/status`, payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
+async function updatePatientProfile(token, payload) {
+  const { data } = await api.put('/patients/me', payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
 export {
   api,
   createDoctor,
+  createRecord,
+  fetchAppointmentAvailability,
+  fetchAppointmentById,
   fetchDashboard,
   fetchPublicDoctors,
   login,
   readApiError,
   registerPatient,
+  updateAppointmentStatus,
+  updatePatientProfile,
 }

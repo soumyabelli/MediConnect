@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   FiBell,
@@ -6,6 +6,7 @@ import {
   FiClipboard,
   FiFileText,
   FiGrid,
+  FiHeart,
   FiLogOut,
   FiMenu,
   FiSearch,
@@ -131,6 +132,7 @@ const roleConfig = {
           { label: 'Dashboard', to: '/patient', icon: FiGrid },
           { label: 'Book appointment', to: '/patient/book', icon: FiCalendar },
           { label: 'Appointments', to: '/patient/appointments', icon: FiCalendar },
+          { label: 'Prescriptions', to: '/patient/prescriptions', icon: FiHeart },
           { label: 'Records', to: '/patient/records', icon: FiFileText },
         ],
       },
@@ -286,3 +288,5 @@ export default function DashboardLayout() {
     </div>
   )
 }
+
+

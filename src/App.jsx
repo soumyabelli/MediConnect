@@ -1,4 +1,4 @@
-import './App.css'
+﻿import './App.css'
 import './dashboard.css'
 import './doctor-dashboard.css'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
@@ -8,6 +8,7 @@ import DoctorLayout from './components/dashboard/DoctorLayout'
 import ProtectedDashboardRoute from './components/dashboard/ProtectedDashboardRoute'
 import AboutUs from './pages/AboutUs'
 import ContactUs from './pages/ContactUs'
+import ConsultationRoomPage from './pages/ConsultationRoomPage'
 import Features from './pages/Features'
 import Home from './pages/Home'
 import HowItWorks from './pages/HowItWorks'
@@ -33,20 +34,21 @@ import {
   AdminSettingsPage,
 } from './pages/admin/AdminPages'
 import {
+  DoctorAppointmentsPage,
   DoctorDashboardPage,
   DoctorPatientsPage,
+  DoctorPrescriptionsPage,
   DoctorProfilePage,
   DoctorRecordsPage,
-  DoctorSchedulePage,
 } from './pages/doctor/DoctorPages'
 import {
   PatientAppointmentsPage,
   PatientDashboardPage,
+  PatientPrescriptionsPage,
   PatientProfilePage,
   PatientRecordsPage,
 } from './pages/patient/PatientPages'
 import BookAppointmentPage from './pages/patient/BookAppointmentPage'
-
 
 export default function App() {
   return (
@@ -62,6 +64,10 @@ export default function App() {
         </Route>
 
         <Route path="login" element={<Login />} />
+
+        <Route element={<ProtectedDashboardRoute role={['doctor', 'patient']} />}>
+          <Route path="consultation/:appointmentId" element={<ConsultationRoomPage />} />
+        </Route>
 
         <Route element={<ProtectedDashboardRoute role="admin" />}>
           <Route path="admin" element={<DashboardLayout />}>
@@ -90,8 +96,10 @@ export default function App() {
         <Route element={<ProtectedDashboardRoute role="doctor" />}>
           <Route path="doctor" element={<DoctorLayout />}>
             <Route index element={<DoctorDashboardPage />} />
+            <Route path="appointments" element={<DoctorAppointmentsPage />} />
+            <Route path="schedule" element={<DoctorAppointmentsPage />} />
             <Route path="patients" element={<DoctorPatientsPage />} />
-            <Route path="schedule" element={<DoctorSchedulePage />} />
+            <Route path="prescriptions" element={<DoctorPrescriptionsPage />} />
             <Route path="records" element={<DoctorRecordsPage />} />
             <Route path="profile" element={<DoctorProfilePage />} />
           </Route>
@@ -102,11 +110,11 @@ export default function App() {
             <Route index element={<PatientDashboardPage />} />
             <Route path="book" element={<BookAppointmentPage />} />
             <Route path="appointments" element={<PatientAppointmentsPage />} />
+            <Route path="prescriptions" element={<PatientPrescriptionsPage />} />
             <Route path="records" element={<PatientRecordsPage />} />
             <Route path="profile" element={<PatientProfilePage />} />
           </Route>
         </Route>
-
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

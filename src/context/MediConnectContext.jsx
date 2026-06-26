@@ -1,5 +1,6 @@
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from 'react'
+﻿/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { io } from 'socket.io-client'
 import {
   createDoctor as createDoctorRequest,
   fetchDashboard,
@@ -76,6 +77,7 @@ export function MediConnectProvider({ children }) {
   const [publicDoctors, setPublicDoctors] = useState(initialPortalData.publicDoctors)
   const [session, setSession] = useState(() => loadSession())
   const [bootstrapping, setBootstrapping] = useState(true)
+  const socketRef = useRef(null)
 
   const persistPortalData = (dashboard, doctorsList) => {
     savePortalCache({
@@ -128,6 +130,46 @@ export function MediConnectProvider({ children }) {
       }
     }
   }
+
+  useEffect(() => {
+    if (!session?.token) {
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+        socketRef.current = null
+      }
+      return undefined
+    }
+
+    const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+      auth: { token: session.token },
+      transports: ['websocket'],
+    })
+
+    socket.on('connect', () => {
+      socket.emit('join-user', { userId: session.userId })
+    })
+
+    const handleSync = () => {
+      syncDashboard(session.token)
+      refreshPublicDoctors()
+    }
+
+    socket.on('dashboard:updated', handleSync)
+    socket.on('appointment:updated', handleSync)
+    socket.on('record:created', handleSync)
+
+    socketRef.current = socket
+
+    return () => {
+      socket.off('dashboard:updated', handleSync)
+      socket.off('appointment:updated', handleSync)
+      socket.off('record:created', handleSync)
+      socket.disconnect()
+      if (socketRef.current === socket) {
+        socketRef.current = null
+      }
+    }
+  }, [session?.token, session?.userId, syncDashboard])
 
   useEffect(() => {
     let active = true
@@ -279,6 +321,11 @@ export function MediConnectProvider({ children }) {
     setSession(null)
     setState(EMPTY_DASHBOARD)
     persistPortalData(EMPTY_DASHBOARD, publicDoctors)
+
+    if (socketRef.current) {
+      socketRef.current.disconnect()
+      socketRef.current = null
+    }
   }
 
   const value = {

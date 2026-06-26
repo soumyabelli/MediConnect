@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+﻿import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useMediConnect } from '../../context/MediConnectContext'
 
 export default function ProtectedDashboardRoute({ role }) {
@@ -9,8 +9,9 @@ export default function ProtectedDashboardRoute({ role }) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
-  if (session.role !== role) {
-    return <Navigate to={`/${session.role}`} replace />
+  const allowedRoles = Array.isArray(role) ? role : [role]
+  if (!allowedRoles.includes(session.role)) {
+    return <Navigate to={`/${allowedRoles[0] || session.role}`} replace />
   }
 
   return <Outlet />

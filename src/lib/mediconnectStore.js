@@ -1,4 +1,4 @@
-function normalizeEmail(email = '') {
+﻿function normalizeEmail(email = '') {
   return String(email).trim().toLowerCase()
 }
 
@@ -81,7 +81,7 @@ function getDoctorOverview(state, doctorId) {
     doctor,
     metrics: {
       assignedPatients: patients.length,
-      upcomingAppointments: appointments.filter((appointment) => appointment.status !== 'Completed').length,
+      upcomingAppointments: appointments.filter((appointment) => appointment.status !== 'Completed' && appointment.status !== 'Cancelled').length,
       treatments: splitTreats(doctor?.treats).length,
       records: records.length,
     },
@@ -134,3 +134,4 @@ export {
   normalizeEmail,
   splitTreats,
 }
+
