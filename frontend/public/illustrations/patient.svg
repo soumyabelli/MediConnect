@@ -1,0 +1,33 @@
+<svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Patient illustration">
+  <defs>
+    <linearGradient id="patientBg" x1="18" y1="22" x2="300" y2="198" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF3F7"/>
+      <stop offset="1" stop-color="#FFD9E6"/>
+    </linearGradient>
+    <linearGradient id="patientCard" x1="70" y1="48" x2="250" y2="174" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFF6FA"/>
+    </linearGradient>
+    <linearGradient id="patientAccent" x1="170" y1="74" x2="234" y2="150" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E14B73"/>
+      <stop offset="1" stop-color="#B91D4F"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="220" rx="30" fill="url(#patientBg)"/>
+  <circle cx="262" cy="58" r="32" fill="#FFE5EE"/>
+  <circle cx="54" cy="164" r="38" fill="#FFE0EB"/>
+  <rect x="56" y="44" width="210" height="132" rx="24" fill="url(#patientCard)" stroke="#F2A5BD" stroke-opacity="0.44"/>
+  <circle cx="106" cy="92" r="24" fill="#FFDDE9"/>
+  <path d="M106 82C101 73 88 74 88 87C88 97 106 111 106 111C106 111 124 97 124 87C124 74 111 73 106 82Z" fill="#E14B73"/>
+  <rect x="146" y="68" width="84" height="16" rx="8" fill="#FFD7E4"/>
+  <rect x="146" y="94" width="122" height="12" rx="6" fill="#FFE5EE"/>
+  <rect x="146" y="116" width="102" height="12" rx="6" fill="#FFE5EE"/>
+  <rect x="146" y="138" width="78" height="12" rx="6" fill="#FFE5EE"/>
+  <rect x="76" y="160" width="164" height="12" rx="6" fill="#FFD1DF"/>
+  <path d="M190 182C197 168.5 209 160 223 160H246C255.941 160 264 168.059 264 178V184H190V182Z" fill="url(#patientAccent)"/>
+  <circle cx="216" cy="160" r="10" fill="#E14B73"/>
+  <circle cx="240" cy="156" r="8" fill="#FF8CAF"/>
+  <path d="M210 160C212 156.5 219 156.5 221 160" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M234 156C236 153 241 153 243 156" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M244 72C244 66.477 248.477 62 254 62C259.523 62 264 66.477 264 72C264 77.523 254 88 254 88C254 88 244 77.523 244 72Z" fill="#E14B73" fill-opacity="0.2"/>
+</svg>
