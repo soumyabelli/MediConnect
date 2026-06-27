@@ -65,13 +65,13 @@ export default function Features() {
       }
       actionSecondary={
         <Link className="inline-button inline-button--ghost" to="/contact">
-          Request a demo
+          Request a demo here
         </Link>
       }
     >
       <section className="info-detail-grid">
         <article className="info-panel">
-          <h2>Built to be calm and peace</h2>
+          <h2>Built to be calm and peacefull</h2>
           <p>
             We prefer clear language, obvious actions, and layouts that let users breathe
             instead of overwhelming them with noise.

@@ -24,7 +24,7 @@ function ContactVisual() {
     <div className="page-visual page-visual--contact">
       <div className="page-visual__orb page-visual__orb--contact" aria-hidden="true" />
       <article className="page-visual__panel page-visual__panel--contact">
-        <span className="page-visual__label">Support desk</span>
+        <span className="page-visual__label">Supporting  desk</span>
         <strong>We respond with clear next steps, not auto-generated confusion.</strong>
         <p>Tell us what you are building and we will help you shape the right workflow.</p>
       </article>
