@@ -12,7 +12,7 @@ const steps = [
   {
     icon: FiCalendar,
     title: 'Book the visitshere',
-    text: 'Choose a slot, confirm the time, and keep the appointment visible to everyone involved here.',
+    text: 'Choose a slot here, confirm the time, and keep the appointment visible to everyone involved here.',
     badge: 'Step 02',
   },
   {

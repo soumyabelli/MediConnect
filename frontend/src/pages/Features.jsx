@@ -71,7 +71,7 @@ export default function Features() {
     >
       <section className="info-detail-grid">
         <article className="info-panel">
-          <h2>Built to be calm and peacefull</h2>
+          <h2>Built to be calm and peacefully</h2>
           <p>
             We prefer clear language, obvious actions, and layouts that let users breathe
             instead of overwhelming them with noise.
