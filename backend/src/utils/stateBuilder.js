@@ -8,6 +8,14 @@ function idOf(value) {
     return ''
   }
 
+  if (typeof value === 'string') {
+    return value
+  }
+
+  if (value?._id) {
+    return String(value._id)
+  }
+
   return String(value)
 }
 
@@ -61,8 +69,8 @@ function patientDto(user) {
 function appointmentDto(appointment, patient, doctor) {
   return {
     id: idOf(appointment._id),
-    patientId: idOf(appointment.patient),
-    doctorId: idOf(appointment.doctor),
+    patientId: idOf(appointment.patient?._id || appointment.patient),
+    doctorId: idOf(appointment.doctor?._id || appointment.doctor),
     date: formatDisplayDate(appointment.appointmentDate),
     time: appointment.timeLabel || '',
     status: appointment.status || 'Pending',
@@ -134,9 +142,6 @@ async function buildDoctorState(doctorId) {
     return null
   }
 
-  const patients = await User.find({ role: 'patient', assignedDoctorId: doctor._id }).sort({
-    createdAt: -1,
-  })
   const appointments = await Appointment.find({ doctor: doctor._id })
     .populate('patient')
     .populate('doctor')
@@ -144,14 +149,25 @@ async function buildDoctorState(doctorId) {
       appointmentDate: -1,
       createdAt: -1,
     })
+  const assignedPatients = await User.find({ role: 'patient', assignedDoctorId: doctor._id }).sort({
+    createdAt: -1,
+  })
   const records = await Record.find({ doctor: doctor._id }).sort({
     recordDate: -1,
     createdAt: -1,
   })
 
-  const userLookup = new Map(
-    patients.map((patient) => [idOf(patient._id), patient]).concat([[idOf(doctor._id), doctor]]),
-  )
+  const patientLookup = new Map(assignedPatients.map((patient) => [idOf(patient._id), patient]))
+  appointments
+    .map((appointment) => appointment.patient)
+    .filter(Boolean)
+    .forEach((patient) => {
+      const key = idOf(patient._id)
+      if (key && !patientLookup.has(key)) {
+        patientLookup.set(key, patient)
+      }
+    })
+  const patients = Array.from(patientLookup.values())
 
   return {
     admin: null,
@@ -160,15 +176,15 @@ async function buildDoctorState(doctorId) {
     appointments: appointments.map((appointment) =>
       appointmentDto(
         appointment,
-        userLookup.get(idOf(appointment.patient)),
-        userLookup.get(idOf(appointment.doctor)),
+        appointment.patient,
+        appointment.doctor,
       ),
     ),
     records: records.map((record) =>
       recordDto(
         record,
-        userLookup.get(idOf(record.patient)),
-        userLookup.get(idOf(record.doctor)),
+        patients.find((patient) => idOf(patient._id) === idOf(record.patient)) || null,
+        doctor,
       ),
     ),
   }
@@ -193,10 +209,6 @@ async function buildPatientState(patientId) {
     createdAt: -1,
   })
 
-  const userLookup = new Map(
-    [[idOf(patient._id), patient]].concat(doctor ? [[idOf(doctor._id), doctor]] : []),
-  )
-
   return {
     admin: null,
     doctors: doctor ? [doctorDto(doctor)] : [],
@@ -204,15 +216,15 @@ async function buildPatientState(patientId) {
     appointments: appointments.map((appointment) =>
       appointmentDto(
         appointment,
-        userLookup.get(idOf(appointment.patient)),
-        userLookup.get(idOf(appointment.doctor)),
+        appointment.patient,
+        appointment.doctor,
       ),
     ),
     records: records.map((record) =>
       recordDto(
         record,
-        userLookup.get(idOf(record.patient)),
-        userLookup.get(idOf(record.doctor)),
+        patient,
+        doctor,
       ),
     ),
   }
