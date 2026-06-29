@@ -20,18 +20,23 @@ function createToken(user) {
 }
 
 async function getUserForLogin(role, email) {
-  return User.findOne({
-    role,
-    email: String(email).trim().toLowerCase(),
-  }).select('+passwordHash')
+  const normalizedEmail = String(email).trim().toLowerCase()
+  const query = { email: normalizedEmail }
+  if (role) query.role = role
+  return User.findOne(query).select('+passwordHash')
 }
 
 async function login(req, res, next) {
   try {
-    const { role, email, password } = req.body
+    const { role: rawRole, email, password } = req.body
+    const role = rawRole ? String(rawRole).trim().toLowerCase() : ''
 
-    if (!role || !email || !password) {
-      return res.status(400).json({ message: 'Role, email, and password are required.' })
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' })
+    }
+
+    if (role && !['admin', 'doctor', 'patient'].includes(role)) {
+      return res.status(400).json({ message: 'Role must be one of: admin, doctor, patient.' })
     }
 
     if (!isConnected()) {
