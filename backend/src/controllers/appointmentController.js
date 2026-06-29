@@ -1,4 +1,4 @@
-const Appointment = require('../models/Appointment')
+﻿const Appointment = require('../models/Appointment')
 const User = require('../models/User')
 const { isConnected } = require('../config/db')
 const { emitAppointmentUpdate, emitDashboardUpdate } = require('../utils/realtime')
