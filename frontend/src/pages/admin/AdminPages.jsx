@@ -66,12 +66,13 @@ function shortList(value, fallback = 'General care') {
 function AdminDashboardPage() {
   const { state } = useMediConnect()
   const overview = getAdminOverview(state)
+  const adminName = state.admin?.name || 'Admin'
 
   return (
     <div className="portal-page">
       <SectionHeader
         eyebrow="Admin overview"
-        title="Welcome back, Admin"
+        title={`Welcome back, ${adminName}`}
         description="Keep doctors, patients, appointments, and records in one clean control center."
         action={
           <div className="portal-action-row">
@@ -87,14 +88,14 @@ function AdminDashboardPage() {
       />
 
       <section className="portal-metric-grid">
-        <MetricCard icon={FiUsers} label="Total Doctors" value={overview.metrics.totalDoctors} detail="+12 this month" tone="blue" />
-        <MetricCard icon={FiHeart} label="Total Patients" value={overview.metrics.totalPatients} detail="+45 this month" tone="green" />
-        <MetricCard icon={FiCalendar} label="Today's Appointments" value={overview.metrics.todaysAppointments} detail="Follow-up queue" tone="amber" />
-        <MetricCard icon={FiActivity} label="Active Consultations" value={overview.metrics.activeConsultations} detail="Live right now" tone="violet" />
-        <MetricCard icon={FiFileText} label="Health Records" value={overview.metrics.totalHealthRecords} detail="Stored securely" tone="rose" />
-        <MetricCard icon={FiClipboard} label="Prescriptions" value={overview.metrics.prescriptionsGenerated} detail="Generated this month" tone="teal" />
-        <MetricCard icon={FiShield} label="Monthly Consultations" value={overview.metrics.monthlyConsultations} detail="Clinic-wide activity" tone="blue" />
-        <MetricCard icon={FiAlertCircle} label="Pending Requests" value={overview.metrics.pendingRequests} detail="Needs your attention" tone="amber" />
+        <MetricCard icon={FiUsers} label="Total Doctors" value={overview.metrics.totalDoctors} detail={`${overview.metrics.newDoctorsThisMonth} added this month`} tone="blue" />
+        <MetricCard icon={FiHeart} label="Total Patients" value={overview.metrics.totalPatients} detail={`${overview.metrics.newPatientsThisMonth} registered this month`} tone="green" />
+        <MetricCard icon={FiCalendar} label="Today's Appointments" value={overview.metrics.todaysAppointments} detail={`${overview.metrics.todaysPendingAppointments} pending today`} tone="amber" />
+        <MetricCard icon={FiActivity} label="Active Consultations" value={overview.metrics.activeConsultations} detail={`${overview.metrics.liveConsultations} in consultation now`} tone="violet" />
+        <MetricCard icon={FiFileText} label="Health Records" value={overview.metrics.totalHealthRecords} detail={`${overview.metrics.recordsThisMonth} added this month`} tone="rose" />
+        <MetricCard icon={FiClipboard} label="Prescriptions" value={overview.metrics.prescriptionsGenerated} detail="Created this month" tone="teal" />
+        <MetricCard icon={FiShield} label="Monthly Consultations" value={overview.metrics.monthlyConsultations} detail="Appointments this month" tone="blue" />
+        <MetricCard icon={FiAlertCircle} label="Pending Requests" value={overview.metrics.pendingRequests} detail={`${overview.metrics.pendingAppointmentRequests} appointments, ${overview.metrics.pendingPatientRequests} patients`} tone="amber" />
       </section>
 
       <section className="portal-grid portal-grid--two">

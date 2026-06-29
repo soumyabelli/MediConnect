@@ -41,25 +41,79 @@ function getRecordsForPatient(state, patientId) {
   return (state?.records || []).filter((record) => record.patientId === patientId || record.patient?.id === patientId)
 }
 
+function parseDate(value) {
+  if (!value) {
+    return null
+  }
+
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function isSameDay(value, referenceDate) {
+  const date = parseDate(value)
+  if (!date) {
+    return false
+  }
+
+  return date.getFullYear() === referenceDate.getFullYear()
+    && date.getMonth() === referenceDate.getMonth()
+    && date.getDate() === referenceDate.getDate()
+}
+
+function isSameMonth(value, referenceDate) {
+  const date = parseDate(value)
+  if (!date) {
+    return false
+  }
+
+  return date.getFullYear() === referenceDate.getFullYear()
+    && date.getMonth() === referenceDate.getMonth()
+}
+
 function getAdminOverview(state) {
   const doctors = state?.doctors || []
   const patients = state?.patients || []
   const appointments = state?.appointments || []
   const records = state?.records || []
+  const now = new Date()
 
-  const activeConsultations = appointments.filter((appointment) => ['Confirmed', 'Accepted'].includes(appointment.status))
+  const activeConsultations = appointments.filter((appointment) =>
+    ['Confirmed', 'Accepted', 'In Consultation'].includes(appointment.status),
+  )
   const pendingRequests = appointments.filter((appointment) => appointment.status === 'Pending')
+  const pendingPatientRequests = patients.filter((patient) => patient.status === 'Pending')
+  const todaysAppointments = appointments.filter((appointment) =>
+    appointment.status !== 'Cancelled' && isSameDay(appointment.appointmentDate, now),
+  )
+  const monthlyAppointments = appointments.filter((appointment) =>
+    appointment.status !== 'Cancelled' && isSameMonth(appointment.appointmentDate, now),
+  )
+  const monthlyRecords = records.filter((record) => isSameMonth(record.recordDate, now))
+  const monthlyPrescriptions = records.filter((record) =>
+    String(record.type || '').toLowerCase().includes('prescription') && isSameMonth(record.recordDate, now),
+  )
+  const newDoctorsThisMonth = doctors.filter((doctor) => isSameMonth(doctor.createdAt, now))
+  const newPatientsThisMonth = patients.filter((patient) => isSameMonth(patient.createdAt || patient.registeredAtIso, now))
+  const liveConsultations = appointments.filter((appointment) => appointment.status === 'In Consultation')
 
   return {
     metrics: {
       totalDoctors: doctors.length,
+      newDoctorsThisMonth: newDoctorsThisMonth.length,
       totalPatients: patients.length,
-      todaysAppointments: appointments.filter((appointment) => appointment.status !== 'Cancelled').length,
+      newPatientsThisMonth: newPatientsThisMonth.length,
+      todaysAppointments: todaysAppointments.length,
+      todaysPendingAppointments: todaysAppointments.filter((appointment) => appointment.status === 'Pending').length,
       activeConsultations: activeConsultations.length,
+      liveConsultations: liveConsultations.length,
       totalHealthRecords: records.length,
-      prescriptionsGenerated: records.length,
-      monthlyConsultations: appointments.length,
-      pendingRequests: pendingRequests.length + patients.filter((patient) => patient.status === 'Pending').length,
+      recordsThisMonth: monthlyRecords.length,
+      prescriptionsGenerated: monthlyPrescriptions.length,
+      monthlyConsultations: monthlyAppointments.length,
+      pendingAppointmentRequests: pendingRequests.length,
+      pendingPatientRequests: pendingPatientRequests.length,
+      pendingRequests: pendingRequests.length + pendingPatientRequests.length,
     },
     recentAppointments: appointments.slice(0, 5),
     recentPatients: patients.slice(0, 5).map((patient) => ({

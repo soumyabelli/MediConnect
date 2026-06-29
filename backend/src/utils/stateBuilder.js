@@ -40,6 +40,8 @@ function baseUserDto(user) {
     city: user.city || '',
     bio: user.bio || '',
     credentialStatus: 'Stored securely',
+    createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : '',
+    updatedAt: user.updatedAt ? new Date(user.updatedAt).toISOString() : '',
   }
 }
 
@@ -62,7 +64,9 @@ function patientDto(user) {
     notes: user.notes || '',
     assignedDoctorId: idOf(user.assignedDoctorId),
     registeredAt: formatDisplayDate(user.registeredAt || user.createdAt),
+    registeredAtIso: user.registeredAt ? new Date(user.registeredAt).toISOString() : '',
     lastVisit: user.lastVisitAt ? formatDisplayDate(user.lastVisitAt) : 'New patient',
+    lastVisitAt: user.lastVisitAt ? new Date(user.lastVisitAt).toISOString() : '',
   }
 }
 
@@ -72,6 +76,7 @@ function appointmentDto(appointment, patient, doctor) {
     patientId: idOf(appointment.patient?._id || appointment.patient),
     doctorId: idOf(appointment.doctor?._id || appointment.doctor),
     date: formatDisplayDate(appointment.appointmentDate),
+    appointmentDate: appointment.appointmentDate ? new Date(appointment.appointmentDate).toISOString() : '',
     time: appointment.timeLabel || '',
     status: appointment.status || 'Pending',
     mode: appointment.mode || 'Online',
@@ -79,6 +84,8 @@ function appointmentDto(appointment, patient, doctor) {
     notes: appointment.notes || '',
     patient: baseUserDto(patient),
     doctor: baseUserDto(doctor),
+    createdAt: appointment.createdAt ? new Date(appointment.createdAt).toISOString() : '',
+    updatedAt: appointment.updatedAt ? new Date(appointment.updatedAt).toISOString() : '',
   }
 }
 
@@ -89,6 +96,7 @@ function recordDto(record, patient, doctor) {
     patientId: idOf(record.patient),
     doctorId: idOf(record.doctor),
     date: formatDisplayDate(record.recordDate),
+    recordDate: record.recordDate ? new Date(record.recordDate).toISOString() : '',
     title: record.title || '',
     summary: record.summary || '',
     prescription: record.prescription || '',
@@ -96,6 +104,8 @@ function recordDto(record, patient, doctor) {
     type: record.type || '',
     patient: baseUserDto(patient),
     doctor: baseUserDto(doctor),
+    createdAt: record.createdAt ? new Date(record.createdAt).toISOString() : '',
+    updatedAt: record.updatedAt ? new Date(record.updatedAt).toISOString() : '',
   }
 }
 
