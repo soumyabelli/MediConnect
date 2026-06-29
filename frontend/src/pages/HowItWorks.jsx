@@ -39,8 +39,8 @@ function ProcessVisual() {
         <span />
       </div>
       <div className="page-visual__lane">
-        <strong>Book</strong>
-        <strong>Consult</strong>
+        <strong>Books</strong>
+        <strong>Consults</strong>
         <strong>Review</strong>
         <strong>Follow-up</strong>
       </div>
