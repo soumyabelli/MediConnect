@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   FiArrowRight,
   FiFileText,
@@ -16,7 +16,6 @@ import {
   FiVideo,
   FiHeadphones,
   FiCloud,
-  FiCheckCircle,
 } from 'react-icons/fi'
 import { FcGoogle } from 'react-icons/fc'
 import doctorImage from '../assets/women doctor.png'
@@ -51,23 +50,6 @@ export default function Login() {
   })
   const [patientForm, setPatientForm] = useState(patientDefaults)
 
-  // Populate admin credentials helper if role is admin
-  useEffect(() => {
-    if (role === 'admin') {
-      setSignInForm({
-        email: 'admin@gmail.com',
-        password: '123',
-      })
-    } else {
-      setSignInForm({
-        email: '',
-        password: '',
-      })
-    }
-    setMessage('')
-    setError('')
-  }, [role])
-
   useEffect(() => {
     if (!bootstrapping && session?.role) {
       navigate(`/${session.role}`, { replace: true })
@@ -88,6 +70,11 @@ export default function Login() {
 
   const handleRoleSelect = (nextRole) => {
     setRole(nextRole)
+    if (nextRole === 'admin') {
+      setSignInForm({ email: 'admin@gmail.com', password: '123' })
+    } else {
+      setSignInForm({ email: '', password: '' })
+    }
     setMessage('')
     setError('')
     setMode(nextRole === 'patient' ? 'signin' : 'signin')

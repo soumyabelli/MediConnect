@@ -19,19 +19,6 @@ function protect(req, res, next) {
     const payload = jwt.verify(token, process.env.JWT_SECRET)
     req.auth = payload
 
-    if (payload.sub === 'mock-admin') {
-      User.findOne({ role: 'admin' })
-        .then((user) => {
-          if (!user) {
-            return res.status(401).json({ message: 'Not authorized, user not found.' })
-          }
-          req.user = user
-          return next()
-        })
-        .catch(next)
-      return
-    }
-
     User.findById(payload.sub)
       .then((user) => {
         if (!user) {

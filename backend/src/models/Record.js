@@ -4,6 +4,12 @@ const { Schema } = mongoose
 
 const recordSchema = new Schema(
   {
+    appointment: {
+      type: Schema.Types.ObjectId,
+      ref: 'Appointment',
+      default: null,
+      index: true,
+    },
     patient: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -34,6 +40,33 @@ const recordSchema = new Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    prescriptionDetails: {
+      diagnosis: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      medicines: {
+        type: [
+          {
+            name: { type: String, trim: true, default: '' },
+            dosage: { type: String, trim: true, default: '' },
+            duration: { type: String, trim: true, default: '' },
+            instructions: { type: String, trim: true, default: '' },
+          },
+        ],
+        default: [],
+      },
+      notes: {
+        type: String,
+        trim: true,
+        default: '',
+      },
+      followUpDate: {
+        type: Date,
+        default: null,
+      },
     },
     type: {
       type: String,

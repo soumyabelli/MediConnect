@@ -1,4 +1,4 @@
-﻿function normalizeEmail(email = '') {
+function normalizeEmail(email = '') {
   return String(email).trim().toLowerCase()
 }
 
@@ -47,7 +47,7 @@ function getAdminOverview(state) {
   const appointments = state?.appointments || []
   const records = state?.records || []
 
-  const activeConsultations = appointments.filter((appointment) => appointment.status === 'Confirmed')
+  const activeConsultations = appointments.filter((appointment) => ['Confirmed', 'Accepted'].includes(appointment.status))
   const pendingRequests = appointments.filter((appointment) => appointment.status === 'Pending')
 
   return {

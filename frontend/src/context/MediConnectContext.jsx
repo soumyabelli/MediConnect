@@ -1,5 +1,5 @@
-﻿/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client'
 import {
   createDoctor as createDoctorRequest,
@@ -78,20 +78,25 @@ export function MediConnectProvider({ children }) {
   const [session, setSession] = useState(() => loadSession())
   const [bootstrapping, setBootstrapping] = useState(true)
   const socketRef = useRef(null)
+  const dashboardRef = useRef(initialPortalData.dashboard)
 
-  const persistPortalData = (dashboard, doctorsList) => {
+  useEffect(() => {
+    dashboardRef.current = state
+  }, [state])
+
+  const persistPortalData = useCallback((dashboard, doctorsList) => {
     savePortalCache({
       dashboard: normalizeDashboard(dashboard),
       publicDoctors: normalizePublicDoctors(doctorsList),
     })
-  }
+  }, [])
 
-  const refreshPublicDoctors = async () => {
+  const refreshPublicDoctors = useCallback(async () => {
     try {
       const response = await fetchPublicDoctors()
       const nextDoctors = normalizePublicDoctors(response?.doctors)
       setPublicDoctors(nextDoctors)
-      persistPortalData(state, nextDoctors)
+      persistPortalData(dashboardRef.current, nextDoctors)
       return nextDoctors
     } catch (error) {
       return {
@@ -99,9 +104,9 @@ export function MediConnectProvider({ children }) {
         message: readApiError(error, 'Unable to refresh the doctor list right now.'),
       }
     }
-  }
+  }, [persistPortalData])
 
-  const syncDashboard = async (token) => {
+  const syncDashboard = useCallback(async (token) => {
     try {
       const response = await fetchDashboard(token)
       const nextSession = buildSessionFromResponse(response)
@@ -129,7 +134,7 @@ export function MediConnectProvider({ children }) {
         message: readApiError(error, 'Unable to load the dashboard right now.'),
       }
     }
-  }
+  }, [persistPortalData, publicDoctors])
 
   useEffect(() => {
     if (!session?.token) {
@@ -169,7 +174,7 @@ export function MediConnectProvider({ children }) {
         socketRef.current = null
       }
     }
-  }, [session?.token, session?.userId, syncDashboard])
+  }, [session?.token, session?.userId, refreshPublicDoctors, syncDashboard])
 
   useEffect(() => {
     let active = true

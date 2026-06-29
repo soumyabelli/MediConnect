@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FiCalendar, FiFileText, FiHeart, FiMessageSquare, FiSave, FiUsers, FiVideo } from 'react-icons/fi'
 import { useMediConnect } from '../../context/MediConnectContext'
@@ -141,7 +141,7 @@ function PatientAppointmentsPage() {
           <Table
             columns={['Doctor', 'Date', 'Time', 'Mode', 'Reason', 'Status', 'Action']}
             rows={appointmentRows.map((appointment) => {
-              const canJoin = ['Confirmed', 'In Consultation'].includes(appointment.status)
+              const canJoin = ['Confirmed', 'Accepted', 'In Consultation'].includes(appointment.status)
               return (
                 <tr key={appointment.id}>
                   <td>{appointment.doctor?.name || appointment.doctorId || 'Unassigned'}</td>
@@ -226,6 +226,21 @@ function PatientPrescriptionsPage() {
                   <span>
                     Prescription: <strong>{record.prescription}</strong>
                   </span>
+                  {record.prescriptionDetails?.diagnosis ? (
+                    <span>
+                      Diagnosis: <strong>{record.prescriptionDetails.diagnosis}</strong>
+                    </span>
+                  ) : null}
+                  {Array.isArray(record.prescriptionDetails?.medicines) && record.prescriptionDetails.medicines.length ? (
+                    <span>
+                      Medicines: <strong>{record.prescriptionDetails.medicines.map((item) => item.name).filter(Boolean).join(', ')}</strong>
+                    </span>
+                  ) : null}
+                  {record.prescriptionDetails?.followUpDate ? (
+                    <span>
+                      Follow up: <strong>{String(record.prescriptionDetails.followUpDate).slice(0, 10)}</strong>
+                    </span>
+                  ) : null}
                   <span>
                     Date: <strong>{record.date}</strong>
                   </span>
@@ -299,31 +314,18 @@ function PatientProfilePage() {
   const { state, session, syncDashboard } = useMediConnect()
   const overview = getPatientOverview(state, session.userId)
   const [form, setForm] = useState({
-    name: '',
-    phone: '',
-    age: '',
-    gender: '',
-    condition: '',
-    bloodGroup: '',
-    address: '',
-    notes: '',
+    name: overview.patient?.name || '',
+    phone: overview.patient?.phone || '',
+    age: overview.patient?.age || '',
+    gender: overview.patient?.gender || '',
+    condition: overview.patient?.condition || '',
+    bloodGroup: overview.patient?.bloodGroup || '',
+    address: overview.patient?.address || '',
+    notes: overview.patient?.notes || '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-
-  useEffect(() => {
-    setForm({
-      name: overview.patient?.name || '',
-      phone: overview.patient?.phone || '',
-      age: overview.patient?.age || '',
-      gender: overview.patient?.gender || '',
-      condition: overview.patient?.condition || '',
-      bloodGroup: overview.patient?.bloodGroup || '',
-      address: overview.patient?.address || '',
-      notes: overview.patient?.notes || '',
-    })
-  }, [overview.patient])
 
   async function handleSave() {
     setError('')

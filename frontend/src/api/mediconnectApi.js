@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
@@ -74,6 +74,15 @@ async function createRecord(token, payload) {
   return data
 }
 
+async function bookAppointment(token, payload) {
+  const { data } = await api.post('/appointments/book', payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
 async function updateAppointmentStatus(token, appointmentId, payload) {
   const { data } = await api.patch(`/appointments/${appointmentId}/status`, payload, {
     headers: {
@@ -94,6 +103,7 @@ async function updatePatientProfile(token, payload) {
 
 export {
   api,
+  bookAppointment,
   createDoctor,
   createRecord,
   fetchAppointmentAvailability,

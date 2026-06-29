@@ -1,10 +1,10 @@
-﻿const Appointment = require('../models/Appointment')
+const Appointment = require('../models/Appointment')
 const User = require('../models/User')
 const { isConnected } = require('../config/db')
 const { emitAppointmentUpdate, emitDashboardUpdate } = require('../utils/realtime')
 
 const AVAILABLE_TIME_SLOTS = ['09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM']
-const APPOINTMENT_STATUS_VALUES = ['Pending', 'Confirmed', 'In Consultation', 'Completed', 'Cancelled']
+const APPOINTMENT_STATUS_VALUES = ['Pending', 'Confirmed', 'Accepted', 'In Consultation', 'Completed', 'Rejected', 'Cancelled']
 
 function toDayBounds(input) {
   const base = new Date(input)
@@ -43,7 +43,7 @@ async function getBookedSlots({ doctorId, appointmentDate }) {
       $gte: bounds.start,
       $lte: bounds.end,
     },
-    status: { $ne: 'Cancelled' },
+    status: { $nin: ['Cancelled', 'Rejected'] },
   }).select('timeLabel status')
 
   return appointments.map((appointment) => normalizeTimeLabel(appointment.timeLabel)).filter(Boolean)
@@ -80,6 +80,16 @@ async function bookAppointment(req, res, next) {
     }
 
     const normalizedTime = normalizeTimeLabel(timeLabel)
+    if (!AVAILABLE_TIME_SLOTS.includes(normalizedTime)) {
+      return res.status(400).json({ message: 'timeLabel must be a valid time slot.' })
+    }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (bounds.start < today) {
+      return res.status(400).json({ message: 'appointmentDate cannot be in the past.' })
+    }
+
     const conflict = await Appointment.findOne({
       doctor: doctor._id,
       appointmentDate: {
@@ -87,7 +97,7 @@ async function bookAppointment(req, res, next) {
         $lte: bounds.end,
       },
       timeLabel: normalizedTime,
-      status: { $ne: 'Cancelled' },
+      status: { $nin: ['Cancelled', 'Rejected'] },
     }).select('_id')
 
     if (conflict) {
@@ -239,7 +249,7 @@ async function updateAppointmentStatus(req, res, next) {
     }
 
     appointment.status = normalizedStatus
-    if (normalizedStatus === 'Cancelled') {
+    if (normalizedStatus === 'Cancelled' || normalizedStatus === 'Rejected') {
       appointment.notes = String(reason || notes || appointment.notes || '').trim()
     } else if (normalizedStatus === 'In Consultation' || normalizedStatus === 'Completed') {
       appointment.notes = String(notes || appointment.notes || '').trim()

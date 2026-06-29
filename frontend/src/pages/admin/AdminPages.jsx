@@ -413,7 +413,7 @@ function AdminAppointmentsPage() {
       />
 
       <section className="portal-metric-grid portal-metric-grid--compact">
-        <MetricCard icon={FiCalendar} label="Confirmed" value={state.appointments.filter((item) => item.status === 'Confirmed').length} detail="Ready to start" tone="green" />
+        <MetricCard icon={FiCalendar} label="Accepted" value={state.appointments.filter((item) => ['Confirmed', 'Accepted'].includes(item.status)).length} detail="Ready to start" tone="green" />
         <MetricCard icon={FiAlertCircle} label="Pending" value={state.appointments.filter((item) => item.status === 'Pending').length} detail="Waiting on response" tone="amber" />
         <MetricCard icon={FiClipboard} label="Completed" value={state.appointments.filter((item) => item.status === 'Completed').length} detail="Closed visits" tone="blue" />
         <MetricCard icon={FiHeart} label="Cancelled" value={state.appointments.filter((item) => item.status === 'Cancelled').length} detail="Removed from schedule" tone="rose" />
@@ -738,7 +738,7 @@ function AdminPendingAppointmentsPage() {
 
       <section className="portal-metric-grid portal-metric-grid--compact">
         <MetricCard icon={FiBell} label="Pending" value={appointments.length} detail="Waiting in queue" tone="amber" />
-        <MetricCard icon={FiCalendar} label="Confirmed" value={state.appointments.filter((item) => item.status === 'Confirmed').length} detail="Next in line" tone="green" />
+        <MetricCard icon={FiCalendar} label="Accepted" value={state.appointments.filter((item) => ['Confirmed', 'Accepted'].includes(item.status)).length} detail="Next in line" tone="green" />
         <MetricCard icon={FiClipboard} label="Completed" value={state.appointments.filter((item) => item.status === 'Completed').length} detail="Already closed" tone="blue" />
         <MetricCard icon={FiActivity} label="Total" value={state.appointments.length} detail="All appointments" tone="violet" />
       </section>
@@ -781,7 +781,7 @@ function AdminCompletedAppointmentsPage() {
       <section className="portal-metric-grid portal-metric-grid--compact">
         <MetricCard icon={FiClipboard} label="Completed" value={appointments.length} detail="Finished consults" tone="green" />
         <MetricCard icon={FiBell} label="Pending" value={state.appointments.filter((item) => item.status === 'Pending').length} detail="Still waiting" tone="amber" />
-        <MetricCard icon={FiCalendar} label="Confirmed" value={state.appointments.filter((item) => item.status === 'Confirmed').length} detail="Ready for next" tone="blue" />
+        <MetricCard icon={FiCalendar} label="Accepted" value={state.appointments.filter((item) => ['Confirmed', 'Accepted'].includes(item.status)).length} detail="Ready for next" tone="blue" />
         <MetricCard icon={FiActivity} label="Total" value={state.appointments.length} detail="Entire appointment log" tone="violet" />
       </section>
 
@@ -916,7 +916,7 @@ function AdminDocumentsPage() {
 function AdminLiveConsultationsPage() {
   const { state } = useMediConnect()
   const liveAppointments = state.appointments.filter(
-    (appointment) => appointment.status === 'Confirmed' && String(appointment.mode).toLowerCase() === 'online',
+    (appointment) => ['Confirmed', 'Accepted'].includes(appointment.status) && String(appointment.mode).toLowerCase() === 'online',
   )
 
   return (

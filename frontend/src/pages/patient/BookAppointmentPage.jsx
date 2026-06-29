@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   FiCalendar,
@@ -15,7 +15,7 @@ import {
   Panel,
   SectionHeader,
 } from '../../components/dashboard/PortalPrimitives'
-import { fetchAppointmentAvailability, readApiError } from '../../api/mediconnectApi'
+import { bookAppointment, fetchAppointmentAvailability, readApiError } from '../../api/mediconnectApi'
 
 const TIME_SLOTS = ['09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM']
 
@@ -34,6 +34,7 @@ export default function BookAppointmentPage() {
 
   const doctors = useMemo(() => publicDoctors || [], [publicDoctors])
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
+  const effectiveDoctorId = selectedDoctorId || (doctors.length ? doctors[0].id : '')
   const [appointmentDate, setAppointmentDate] = useState('')
   const [timeLabel, setTimeLabel] = useState(getFirstSlot(TIME_SLOTS))
   const [mode, setMode] = useState('Online')
@@ -46,16 +47,10 @@ export default function BookAppointmentPage() {
   const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
-    if (!selectedDoctorId && doctors.length) {
-      setSelectedDoctorId(doctors[0].id)
-    }
-  }, [doctors, selectedDoctorId])
-
-  useEffect(() => {
     let active = true
 
     async function loadAvailability() {
-      if (!session?.token || !selectedDoctorId || !appointmentDate) {
+      if (!session?.token || !effectiveDoctorId || !appointmentDate) {
         setAvailableSlots(TIME_SLOTS)
         setBookedSlots([])
         return
@@ -65,7 +60,7 @@ export default function BookAppointmentPage() {
         setSlotLoading(true)
         const response = await fetchAppointmentAvailability(
           session.token,
-          selectedDoctorId,
+          effectiveDoctorId,
           normalizeDateInput(appointmentDate),
         )
 
@@ -108,11 +103,11 @@ export default function BookAppointmentPage() {
     return () => {
       active = false
     }
-  }, [appointmentDate, selectedDoctorId, session?.token])
+  }, [appointmentDate, effectiveDoctorId, session?.token, timeLabel])
 
   const selectedDoctor = useMemo(
-    () => doctors.find((d) => String(d.id) === String(selectedDoctorId)) || null,
-    [doctors, selectedDoctorId],
+    () => doctors.find((d) => String(d.id) === String(effectiveDoctorId)) || null,
+    [doctors, effectiveDoctorId],
   )
 
   async function submitBooking() {
@@ -123,7 +118,7 @@ export default function BookAppointmentPage() {
       setError('Please login again to book an appointment.')
       return
     }
-    if (!selectedDoctorId) {
+    if (!effectiveDoctorId) {
       setError('Please choose a doctor.')
       return
     }
@@ -142,30 +137,13 @@ export default function BookAppointmentPage() {
 
     try {
       setSubmitting(true)
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-      const token = session?.token
-
-      const response = await fetch(`${apiBase}/appointments/book`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          doctorId: selectedDoctorId,
-          appointmentDate: new Date(normalizeDateInput(appointmentDate)).toISOString(),
-          timeLabel,
-          mode,
-          reason,
-        }),
+      await bookAppointment(session.token, {
+        doctorId: effectiveDoctorId,
+        appointmentDate: new Date(normalizeDateInput(appointmentDate)).toISOString(),
+        timeLabel,
+        mode,
+        reason,
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data?.message || 'Unable to book appointment right now.')
-        return
-      }
 
       setSuccessMessage('Appointment request sent successfully. Status will update when confirmed.')
 
@@ -198,7 +176,7 @@ export default function BookAppointmentPage() {
           {doctors.length ? (
             <div style={{ display: 'grid', gap: 12 }}>
               {doctors.map((doctor) => {
-                const active = String(doctor.id) === String(selectedDoctorId)
+                const active = String(doctor.id) === String(effectiveDoctorId)
                 return (
                   <button
                     key={doctor.id}

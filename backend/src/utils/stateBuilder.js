@@ -77,12 +77,14 @@ function appointmentDto(appointment, patient, doctor) {
 function recordDto(record, patient, doctor) {
   return {
     id: idOf(record._id),
+    appointmentId: idOf(record.appointment),
     patientId: idOf(record.patient),
     doctorId: idOf(record.doctor),
     date: formatDisplayDate(record.recordDate),
     title: record.title || '',
     summary: record.summary || '',
     prescription: record.prescription || '',
+    prescriptionDetails: record.prescriptionDetails || null,
     type: record.type || '',
     patient: baseUserDto(patient),
     doctor: baseUserDto(doctor),

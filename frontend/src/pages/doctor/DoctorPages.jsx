@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
   FiActivity,
@@ -25,7 +25,7 @@ import {
 
 function toneForStatus(status) {
   const value = String(status || '').toLowerCase()
-  if (value.includes('active') || value.includes('confirmed') || value.includes('completed')) {
+  if (value.includes('active') || value.includes('accepted') || value.includes('confirmed') || value.includes('completed')) {
     return 'green'
   }
   if (value.includes('pending')) {
@@ -39,15 +39,6 @@ function toneForStatus(status) {
   }
 
   return 'slate'
-}
-
-function doctorInitials(name = 'Doctor') {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((part) => part[0] || '')
-    .join('')
-    .toUpperCase() || 'DR'
 }
 
 function DoctorDashboardPage() {
@@ -272,7 +263,7 @@ function DoctorAppointmentsPage() {
                     <button
                       type="button"
                       className="portal-button"
-                      onClick={() => changeStatus(appointment, 'Confirmed')}
+                      onClick={() => changeStatus(appointment, 'Accepted')}
                       disabled={busyAppointmentId === appointment.id}
                     >
                       Accept
@@ -280,14 +271,14 @@ function DoctorAppointmentsPage() {
                     <button
                       type="button"
                       className="portal-button portal-button--ghost"
-                      onClick={() => changeStatus(appointment, 'Cancelled', { reason: 'Rejected by doctor' })}
+                      onClick={() => changeStatus(appointment, 'Rejected', { reason: 'Rejected by doctor' })}
                       disabled={busyAppointmentId === appointment.id}
                     >
                       Reject
                     </button>
                   </div>
                 )
-              } else if (appointment.status === 'Confirmed') {
+              } else if (appointment.status === 'Confirmed' || appointment.status === 'Accepted') {
                 action = (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <Link className="portal-button portal-button--ghost" to={`/consultation/${appointment.id}`}>
@@ -451,6 +442,10 @@ function DoctorPrescriptionsPage() {
     title: '',
     summary: '',
     prescription: '',
+    diagnosis: '',
+    medicines: '',
+    notes: '',
+    followUpDate: '',
     type: 'Prescription',
   })
   const [saving, setSaving] = useState(false)
@@ -463,16 +458,26 @@ function DoctorPrescriptionsPage() {
     }
   }, [session?.token, syncDashboard])
 
-  useEffect(() => {
-    setForm((current) => ({
-      ...current,
-      patientId: searchParams.get('patientId') || current.patientId || overview.patients[0]?.id || '',
-      appointmentId: searchParams.get('appointmentId') || current.appointmentId || '',
-    }))
-  }, [overview.patients, searchParams])
+  const effectivePatientId = form.patientId || searchParams.get('patientId') || overview.patients[0]?.id || ''
+  const effectiveAppointmentId = form.appointmentId || searchParams.get('appointmentId') || ''
 
-  const selectedPatient = overview.patients.find((patient) => String(patient.id) === String(form.patientId)) || null
-  const selectedAppointment = overview.appointments.find((appointment) => String(appointment.id) === String(form.appointmentId)) || null
+  const selectedPatient = overview.patients.find((patient) => String(patient.id) === String(effectivePatientId)) || null
+  const selectedAppointment = overview.appointments.find((appointment) => String(appointment.id) === String(effectiveAppointmentId)) || null
+
+  const isPrescriptionType = String(form.type || '').toLowerCase().includes('prescription')
+
+  function parseMedicines(input) {
+    return String(input || '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const parts = line.split('|').map((part) => part.trim())
+        const [name = '', dosage = '', duration = '', instructions = ''] = parts
+        return { name, dosage, duration, instructions }
+      })
+      .filter((item) => item.name || item.dosage || item.duration || item.instructions)
+  }
 
   async function handleSave() {
     if (!session?.token) {
@@ -485,16 +490,27 @@ function DoctorPrescriptionsPage() {
       return
     }
 
+    if (isPrescriptionType && !effectiveAppointmentId) {
+      setError('Please link the appointment before sending a prescription.')
+      return
+    }
+
     try {
       setSaving(true)
       setError('')
       setSuccess('')
       await createRecord(session.token, {
-        patientId: form.patientId,
-        appointmentId: form.appointmentId,
+        patientId: effectivePatientId,
+        appointmentId: effectiveAppointmentId,
         title: form.title,
         summary: form.summary,
         prescription: form.prescription,
+        prescriptionDetails: {
+          diagnosis: form.diagnosis,
+          medicines: parseMedicines(form.medicines),
+          notes: form.notes,
+          followUpDate: form.followUpDate || null,
+        },
         type: form.type || 'Prescription',
       })
       setSuccess('Prescription sent to the patient timeline.')
@@ -503,6 +519,10 @@ function DoctorPrescriptionsPage() {
         title: '',
         summary: '',
         prescription: '',
+        diagnosis: '',
+        medicines: '',
+        notes: '',
+        followUpDate: '',
         appointmentId: '',
       }))
       await syncDashboard(session.token)
@@ -527,8 +547,8 @@ function DoctorPrescriptionsPage() {
             <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Patient</span>
               <select
-                value={form.patientId}
-                onChange={(e) => setForm((current) => ({ ...current, patientId: e.target.value }))}
+                value={effectivePatientId}
+                onChange={(e) => setForm((current) => ({ ...current, patientId: e.target.value, appointmentId: '' }))}
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
               >
                 <option value="">Select patient</option>
@@ -542,13 +562,13 @@ function DoctorPrescriptionsPage() {
             <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Appointment</span>
               <select
-                value={form.appointmentId}
+                value={effectiveAppointmentId}
                 onChange={(e) => setForm((current) => ({ ...current, appointmentId: e.target.value }))}
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
               >
                 <option value="">Optional appointment link</option>
                 {overview.appointments
-                  .filter((appointment) => !form.patientId || String(appointment.patientId) === String(form.patientId))
+                  .filter((appointment) => !effectivePatientId || String(appointment.patientId) === String(effectivePatientId))
                   .map((appointment) => (
                     <option key={appointment.id} value={appointment.id}>
                       {appointment.date} {appointment.time} - {appointment.status}
@@ -594,6 +614,44 @@ function DoctorPrescriptionsPage() {
                 onChange={(e) => setForm((current) => ({ ...current, prescription: e.target.value }))}
                 placeholder="Medicine details, dosage, duration, follow-up instructions..."
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
+              />
+            </label>
+            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
+              <strong>Diagnosis</strong>
+              <input
+                value={form.diagnosis}
+                onChange={(e) => setForm((current) => ({ ...current, diagnosis: e.target.value }))}
+                placeholder="Diagnosis"
+                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
+              />
+            </label>
+            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
+              <strong>Medicines</strong>
+              <textarea
+                rows={5}
+                value={form.medicines}
+                onChange={(e) => setForm((current) => ({ ...current, medicines: e.target.value }))}
+                placeholder="One per line: Name | Dosage | Duration | Instructions"
+                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
+              />
+            </label>
+            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
+              <strong>Notes</strong>
+              <textarea
+                rows={3}
+                value={form.notes}
+                onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
+                placeholder="Notes"
+                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
+              />
+            </label>
+            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
+              <strong>Follow-up date</strong>
+              <input
+                type="date"
+                value={form.followUpDate}
+                onChange={(e) => setForm((current) => ({ ...current, followUpDate: e.target.value }))}
+                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
               />
             </label>
           </div>

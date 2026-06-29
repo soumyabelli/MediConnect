@@ -1,16 +1,17 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import { FiArrowLeft, FiCamera, FiCameraOff, FiMic, FiMicOff, FiPhoneOff, FiVideo } from 'react-icons/fi'
 import { useMediConnect } from '../context/MediConnectContext'
 import { fetchAppointmentById, readApiError } from '../api/mediconnectApi'
+import { EmptyState, Panel, SectionHeader } from '../components/dashboard/PortalPrimitives'
 
 function getFriendlyError(error, fallback) {
   return readApiError(error, fallback)
 }
 
 function isCallReady(status = '') {
-  return ['Confirmed', 'In Consultation'].includes(status)
+  return ['Confirmed', 'Accepted', 'In Consultation'].includes(status)
 }
 
 export default function ConsultationRoomPage() {
@@ -27,6 +28,7 @@ export default function ConsultationRoomPage() {
   const [info, setInfo] = useState('Camera not started yet.')
   const [micEnabled, setMicEnabled] = useState(true)
   const [camEnabled, setCamEnabled] = useState(true)
+  const [mediaReady, setMediaReady] = useState(false)
 
   const socketRef = useRef(null)
   const pcRef = useRef(null)
@@ -37,6 +39,23 @@ export default function ConsultationRoomPage() {
   const isOffererRef = useRef(false)
   const remoteDescriptionReadyRef = useRef(false)
   const pendingIceRef = useRef([])
+
+  const startOffer = useCallback(async () => {
+    if (!socketRef.current || !pcRef.current || !joinedRef.current || session.role !== 'doctor') {
+      return
+    }
+
+    if (isOffererRef.current) {
+      return
+    }
+
+    isOffererRef.current = true
+    const pc = pcRef.current
+    const offer = await pc.createOffer()
+    await pc.setLocalDescription(offer)
+    socketRef.current.emit('consultation:signal', { appointmentId, type: 'offer', data: offer })
+    setCallState('Calling')
+  }, [appointmentId, session.role])
 
   const appointmentFromStore = useMemo(
     () => state.appointments.find((item) => String(item.id) === String(appointmentId)) || null,
@@ -162,7 +181,7 @@ export default function ConsultationRoomPage() {
         socketRef.current = null
       }
     }
-  }, [appointmentId, session?.role, session?.token])
+  }, [appointmentId, session?.role, session?.token, startOffer])
 
   function createPeerConnection() {
     if (pcRef.current) {
@@ -218,25 +237,9 @@ export default function ConsultationRoomPage() {
 
     setMicEnabled(true)
     setCamEnabled(true)
+    setMediaReady(true)
     setInfo('Camera and microphone are ready.')
     return stream
-  }
-
-  async function startOffer() {
-    if (!socketRef.current || !pcRef.current || !joinedRef.current || session.role !== 'doctor') {
-      return
-    }
-
-    if (isOffererRef.current) {
-      return
-    }
-
-    isOffererRef.current = true
-    const pc = pcRef.current
-    const offer = await pc.createOffer()
-    await pc.setLocalDescription(offer)
-    socketRef.current.emit('consultation:signal', { appointmentId, type: 'offer', data: offer })
-    setCallState('Calling')
   }
 
   async function joinRoom() {
@@ -317,6 +320,7 @@ export default function ConsultationRoomPage() {
       localStreamRef.current.getTracks().forEach((track) => track.stop())
       localStreamRef.current = null
     }
+    setMediaReady(false)
 
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null
@@ -378,10 +382,10 @@ export default function ConsultationRoomPage() {
             <button type="button" className="portal-button" onClick={joinRoom} disabled={loading || !canStartCall}>
               <FiVideo /> {loading ? 'Preparing...' : joined ? 'Rejoin room' : 'Join room'}
             </button>
-            <button type="button" className="portal-button portal-button--ghost" onClick={() => toggleTrack('audio')} disabled={!localStreamRef.current}>
+            <button type="button" className="portal-button portal-button--ghost" onClick={() => toggleTrack('audio')} disabled={!mediaReady}>
               {micEnabled ? <FiMic /> : <FiMicOff />} {micEnabled ? 'Mute mic' : 'Unmute mic'}
             </button>
-            <button type="button" className="portal-button portal-button--ghost" onClick={() => toggleTrack('video')} disabled={!localStreamRef.current}>
+            <button type="button" className="portal-button portal-button--ghost" onClick={() => toggleTrack('video')} disabled={!mediaReady}>
               {camEnabled ? <FiCamera /> : <FiCameraOff />} {camEnabled ? 'Stop camera' : 'Start camera'}
             </button>
             <button type="button" className="portal-button portal-button--ghost" onClick={endCall}>

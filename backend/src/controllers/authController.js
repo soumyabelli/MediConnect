@@ -35,36 +35,18 @@ async function login(req, res, next) {
     }
 
     if (!isConnected()) {
-      // Fallback for admin if DB is disconnected (e.g. IP whitelist issue)
-      if (role === 'admin' && email === 'admin@gmail.com' && password === '123') {
-        const mockAdmin = { id: 'mock-admin', role: 'admin', name: 'Admin', email: 'admin@gmail.com' }
-        return res.json({
-          token: jwt.sign({ sub: 'mock-admin', role: 'admin', email: 'admin@gmail.com' }, process.env.JWT_SECRET, { expiresIn: '7d' }),
-          user: mockAdmin,
-          dashboard: { admin: mockAdmin, doctors: [], patients: [], appointments: [], records: [] }
-        })
-      }
       return res.status(503).json({ message: 'Service temporarily unavailable: database not connected.' })
     }
 
-    let user = await getUserForLogin(role, email)
-    
-    // Fallback if admin isn't found in DB due to typo in seed
-    let isBackdoor = false;
-    if (!user && role === 'admin' && email === 'admin@gmail.com' && password === '123') {
-      user = await User.findOne({ role: 'admin' })
-      isBackdoor = true;
-    }
+    const user = await getUserForLogin(role, email)
 
     if (!user) {
       return res.status(401).json({ message: 'No matching account was found.' })
     }
 
-    if (!isBackdoor) {
-      const passwordMatches = await comparePassword(password, user.passwordHash)
-      if (!passwordMatches) {
-        return res.status(401).json({ message: 'No matching account was found.' })
-      }
+    const passwordMatches = await comparePassword(password, user.passwordHash)
+    if (!passwordMatches) {
+      return res.status(401).json({ message: 'No matching account was found.' })
     }
 
     const token = createToken(user)
@@ -132,18 +114,6 @@ async function registerPatient(req, res, next) {
       registeredAt: new Date(),
       lastVisitAt: null,
     })
-
-    if (selectedDoctor) {
-      await Appointment.create({
-        patient: patient._id,
-        doctor: selectedDoctor._id,
-        appointmentDate: new Date(),
-        timeLabel: '09:30 AM',
-        status: 'Pending',
-        mode: 'Online',
-        reason: condition,
-      })
-    }
 
     const token = createToken(patient)
     const dashboard = await buildDashboardState(patient)

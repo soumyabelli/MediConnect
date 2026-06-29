@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose')
+const mongoose = require('mongoose')
 
 const { Schema } = mongoose
 
@@ -27,7 +27,7 @@ const appointmentSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+      enum: ['Pending', 'Confirmed', 'Accepted', 'In Consultation', 'Completed', 'Rejected', 'Cancelled'],
       default: 'Pending',
       index: true,
     },
@@ -57,7 +57,7 @@ appointmentSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      status: { $in: ['Pending', 'Confirmed', 'Completed'] },
+      status: { $in: ['Pending', 'Confirmed', 'Accepted', 'In Consultation', 'Completed'] },
     },
   },
 )

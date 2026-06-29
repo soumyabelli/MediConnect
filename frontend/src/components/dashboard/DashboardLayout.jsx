@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   FiBell,
@@ -37,7 +37,7 @@ const roleConfig = {
         title: 'Doctors',
         items: [
           { label: 'All Doctors', to: '/admin/doctors', icon: FiUsers },
-          { label: 'Add Doctor', action: 'scroll', target: 'add-doctor', icon: FiUser },
+          { label: 'Add Doctor', to: '/admin/doctors#add-doctor', icon: FiUser },
           { label: 'Doctor Approvals', to: '/admin/doctors/approvals', icon: FiClipboard },
         ],
       },
