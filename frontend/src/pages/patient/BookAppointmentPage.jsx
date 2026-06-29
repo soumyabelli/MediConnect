@@ -18,6 +18,7 @@ import {
 import { bookAppointment, fetchAppointmentAvailability, readApiError } from '../../api/mediconnectApi'
 
 const TIME_SLOTS = ['09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM']
+const AVAILABILITY_REFRESH_MS = 4000
 
 function normalizeDateInput(value) {
   if (!value) return ''
@@ -48,6 +49,7 @@ export default function BookAppointmentPage() {
 
   useEffect(() => {
     let active = true
+    let intervalId = null
 
     async function loadAvailability() {
       if (!session?.token || !effectiveDoctorId || !appointmentDate) {
@@ -100,8 +102,17 @@ export default function BookAppointmentPage() {
 
     loadAvailability()
 
+    if (session?.token && effectiveDoctorId && appointmentDate) {
+      intervalId = window.setInterval(() => {
+        loadAvailability()
+      }, AVAILABILITY_REFRESH_MS)
+    }
+
     return () => {
       active = false
+      if (intervalId) {
+        window.clearInterval(intervalId)
+      }
     }
   }, [appointmentDate, effectiveDoctorId, session?.token, timeLabel])
 
@@ -137,9 +148,26 @@ export default function BookAppointmentPage() {
 
     try {
       setSubmitting(true)
+      const latestAvailability = await fetchAppointmentAvailability(
+        session.token,
+        effectiveDoctorId,
+        normalizeDateInput(appointmentDate),
+      )
+
+      const latestSlots = Array.isArray(latestAvailability?.availableSlots) ? latestAvailability.availableSlots : []
+      const latestBooked = Array.isArray(latestAvailability?.bookedSlots) ? latestAvailability.bookedSlots : []
+      setAvailableSlots(latestSlots)
+      setBookedSlots(latestBooked)
+
+      if (!latestSlots.includes(timeLabel)) {
+        setTimeLabel(latestSlots[0] || '')
+        setError('That slot was just booked by another patient. Please choose another available time.')
+        return
+      }
+
       await bookAppointment(session.token, {
         doctorId: effectiveDoctorId,
-        appointmentDate: new Date(normalizeDateInput(appointmentDate)).toISOString(),
+        appointmentDate: normalizeDateInput(appointmentDate),
         timeLabel,
         mode,
         reason,
@@ -157,7 +185,22 @@ export default function BookAppointmentPage() {
 
       navigate('/patient/appointments')
     } catch (e) {
-      setError(e?.message || 'Unable to book appointment right now.')
+      if (e?.response?.status === 409 && session?.token) {
+        try {
+          const latestAvailability = await fetchAppointmentAvailability(
+            session.token,
+            effectiveDoctorId,
+            normalizeDateInput(appointmentDate),
+          )
+          const latestSlots = Array.isArray(latestAvailability?.availableSlots) ? latestAvailability.availableSlots : []
+          setAvailableSlots(latestSlots)
+          setBookedSlots(Array.isArray(latestAvailability?.bookedSlots) ? latestAvailability.bookedSlots : [])
+          setTimeLabel((current) => (latestSlots.includes(current) ? current : latestSlots[0] || ''))
+        } catch {
+          // ignore secondary refresh failures
+        }
+      }
+      setError(readApiError(e, 'Unable to book appointment right now.'))
     } finally {
       setSubmitting(false)
     }

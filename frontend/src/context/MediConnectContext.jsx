@@ -49,13 +49,15 @@ function loadInitialPortalData() {
   }
 }
 
-function buildSessionFromResponse(response) {
-  if (!response?.token || !response?.user) {
+function buildSessionFromResponse(response, fallbackToken = '') {
+  const token = response?.token || fallbackToken
+
+  if (!token || !response?.user) {
     return null
   }
 
   return {
-    token: response.token,
+    token,
     role: response.user.role,
     userId: response.user.id,
     email: response.user.email,
@@ -109,7 +111,7 @@ export function MediConnectProvider({ children }) {
   const syncDashboard = useCallback(async (token) => {
     try {
       const response = await fetchDashboard(token)
-      const nextSession = buildSessionFromResponse(response)
+      const nextSession = buildSessionFromResponse(response, token)
       const nextDashboard = normalizeDashboard(response?.dashboard)
 
       if (nextSession) {
@@ -212,7 +214,7 @@ export function MediConnectProvider({ children }) {
         }
 
         if (dashboardResponse && !dashboardResponse.error) {
-          const nextSession = buildSessionFromResponse(dashboardResponse)
+          const nextSession = buildSessionFromResponse(dashboardResponse, storedSession?.token || '')
           nextDashboard = normalizeDashboard(dashboardResponse.dashboard)
 
           if (nextSession) {

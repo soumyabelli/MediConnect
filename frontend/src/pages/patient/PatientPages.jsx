@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FiCalendar, FiFileText, FiHeart, FiMessageSquare, FiSave, FiUsers, FiVideo } from 'react-icons/fi'
 import { useMediConnect } from '../../context/MediConnectContext'
-import { updatePatientProfile, readApiError } from '../../api/mediconnectApi'
+import { updateMyProfile, readApiError } from '../../api/mediconnectApi'
 import { getPatientOverview } from '../../lib/mediconnectStore'
 import {
   EmptyState,
@@ -315,6 +315,8 @@ function PatientProfilePage() {
   const overview = getPatientOverview(state, session.userId)
   const [form, setForm] = useState({
     name: overview.patient?.name || '',
+    email: overview.patient?.email || '',
+    password: '',
     phone: overview.patient?.phone || '',
     age: overview.patient?.age || '',
     gender: overview.patient?.gender || '',
@@ -327,6 +329,21 @@ function PatientProfilePage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  useEffect(() => {
+    setForm({
+      name: overview.patient?.name || '',
+      email: overview.patient?.email || '',
+      password: '',
+      phone: overview.patient?.phone || '',
+      age: overview.patient?.age || '',
+      gender: overview.patient?.gender || '',
+      condition: overview.patient?.condition || '',
+      bloodGroup: overview.patient?.bloodGroup || '',
+      address: overview.patient?.address || '',
+      notes: overview.patient?.notes || '',
+    })
+  }, [overview.patient])
+
   async function handleSave() {
     setError('')
     setSuccess('')
@@ -338,11 +355,12 @@ function PatientProfilePage() {
 
     try {
       setSaving(true)
-      await updatePatientProfile(session.token, form)
+      await updateMyProfile(session.token, form)
       setSuccess('Profile updated successfully.')
       if (session?.token) {
         await syncDashboard(session.token)
       }
+      setForm((current) => ({ ...current, password: '' }))
     } catch (requestError) {
       setError(readApiError(requestError, 'Unable to update your profile right now.'))
     } finally {
@@ -365,10 +383,10 @@ function PatientProfilePage() {
               <span>Name</span>
               <input value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
             </label>
-            <div className="portal-credential-card">
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Email</span>
-              <strong>{overview.patient?.email}</strong>
-            </div>
+              <input value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
             <div className="portal-credential-card">
               <span>Credential status</span>
               <strong>{overview.patient?.credentialStatus || 'Stored securely'}</strong>
@@ -387,6 +405,10 @@ function PatientProfilePage() {
             <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Blood group</span>
               <input value={form.bloodGroup} onChange={(e) => setForm((current) => ({ ...current, bloodGroup: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+              <span>New password</span>
+              <input type="password" value={form.password} onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))} placeholder="Leave blank to keep current password" style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
             </label>
           </div>
         </Panel>

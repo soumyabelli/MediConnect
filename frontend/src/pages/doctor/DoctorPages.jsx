@@ -12,7 +12,7 @@ import {
   FiClock,
 } from 'react-icons/fi'
 import { useMediConnect } from '../../context/MediConnectContext'
-import { createRecord, readApiError, updateAppointmentStatus } from '../../api/mediconnectApi'
+import { createRecord, readApiError, updateAppointmentStatus, updateMyProfile } from '../../api/mediconnectApi'
 import { getDoctorOverview } from '../../lib/mediconnectStore'
 import {
   EmptyState,
@@ -786,12 +786,66 @@ function DoctorRecordsPage() {
 function DoctorProfilePage() {
   const { state, session, syncDashboard } = useMediConnect()
   const overview = getDoctorOverview(state, session.userId)
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    specialization: '',
+    treats: '',
+    availability: '',
+    fee: '',
+    experience: '',
+    city: '',
+    bio: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => {
     if (session?.token) {
       syncDashboard(session.token)
     }
   }, [session?.token, syncDashboard])
+
+  useEffect(() => {
+    setForm({
+      name: overview.doctor?.name || '',
+      email: overview.doctor?.email || '',
+      password: '',
+      phone: overview.doctor?.phone || '',
+      specialization: overview.doctor?.specialization || '',
+      treats: overview.doctor?.treats || '',
+      availability: overview.doctor?.availability || '',
+      fee: overview.doctor?.fee || '',
+      experience: overview.doctor?.experience || '',
+      city: overview.doctor?.city || '',
+      bio: overview.doctor?.bio || '',
+    })
+  }, [overview.doctor])
+
+  async function handleSave() {
+    setError('')
+    setSuccess('')
+
+    if (!session?.token) {
+      setError('Please sign in again to update your profile.')
+      return
+    }
+
+    try {
+      setSaving(true)
+      await updateMyProfile(session.token, form)
+      setSuccess('Profile updated successfully.')
+      await syncDashboard(session.token)
+      setForm((current) => ({ ...current, password: '' }))
+    } catch (requestError) {
+      setError(readApiError(requestError, 'Unable to update your profile right now.'))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="portal-page">
@@ -802,37 +856,73 @@ function DoctorProfilePage() {
       />
 
       <section className="portal-grid portal-grid--two">
-        <Panel title="Profile details" description="This is the user record currently powering the dashboard">
+        <Panel title="Profile details" description="Update the details patients and admins see in the live portal">
           {overview.doctor ? (
-            <div className="portal-notes">
-              <article className="portal-note">
-                <strong>Name</strong>
-                <p>{overview.doctor.name}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Email</strong>
-                <p>{overview.doctor.email}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Specialization</strong>
-                <p>{overview.doctor.specialization || '-'}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Treats</strong>
-                <p>{overview.doctor.treats || '-'}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Availability</strong>
-                <p>{overview.doctor.availability || '-'}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Status</strong>
-                <p>{overview.doctor.status || 'Active'}</p>
-              </article>
+            <div className="portal-profile-grid">
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Name</span>
+                <input value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Email</span>
+                <input value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Phone</span>
+                <input value={form.phone} onChange={(e) => setForm((current) => ({ ...current, phone: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Specialization</span>
+                <input value={form.specialization} onChange={(e) => setForm((current) => ({ ...current, specialization: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Treats</span>
+                <input value={form.treats} onChange={(e) => setForm((current) => ({ ...current, treats: e.target.value }))} placeholder="Cardiology, Heart Care" style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Availability</span>
+                <input value={form.availability} onChange={(e) => setForm((current) => ({ ...current, availability: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Fee</span>
+                <input value={form.fee} onChange={(e) => setForm((current) => ({ ...current, fee: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>Experience</span>
+                <input value={form.experience} onChange={(e) => setForm((current) => ({ ...current, experience: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>City</span>
+                <input value={form.city} onChange={(e) => setForm((current) => ({ ...current, city: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+                <span>New password</span>
+                <input type="password" value={form.password} onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))} placeholder="Leave blank to keep current password" style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+              </label>
+              <label className="portal-credential-card" style={{ display: 'grid', gap: 6, gridColumn: '1 / -1' }}>
+                <span>Bio</span>
+                <textarea rows={4} value={form.bio} onChange={(e) => setForm((current) => ({ ...current, bio: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }} />
+              </label>
             </div>
           ) : (
             <EmptyState title="No doctor profile" description="Sign in again if your doctor profile is missing." />
           )}
+
+          {error ? (
+            <div style={{ marginTop: 12, background: '#fff1f2', border: '1px solid #fecdd3', color: '#be123c', padding: 10, borderRadius: 10 }}>
+              {error}
+            </div>
+          ) : null}
+
+          {success ? (
+            <div style={{ marginTop: 12, background: '#ecfdf5', border: '1px solid #bbf7d0', color: '#166534', padding: 10, borderRadius: 10 }}>
+              {success}
+            </div>
+          ) : null}
+
+          <button type="button" onClick={handleSave} disabled={saving} className="portal-button" style={{ marginTop: 16 }}>
+            {saving ? 'Saving...' : 'Save profile'}
+          </button>
         </Panel>
 
         <Panel title="Clinic summary" description="A quick live snapshot of your dashboard">

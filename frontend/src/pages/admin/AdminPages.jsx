@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   FiActivity,
@@ -16,6 +16,7 @@ import {
   FiVideo,
 } from 'react-icons/fi'
 import { useMediConnect } from '../../context/MediConnectContext'
+import { readApiError, updateMyProfile } from '../../api/mediconnectApi'
 import {
   getAdminOverview,
   getDoctorById,
@@ -1077,7 +1078,49 @@ function AdminNotificationsPage() {
 }
 
 function AdminProfilePage() {
-  const { state } = useMediConnect()
+  const { state, session, syncDashboard } = useMediConnect()
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    phone: '',
+    title: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    setForm({
+      name: state.admin?.name || '',
+      email: state.admin?.email || '',
+      password: '',
+      phone: state.admin?.phone || '',
+      title: state.admin?.title || '',
+    })
+  }, [state.admin])
+
+  async function handleSave() {
+    setError('')
+    setSuccess('')
+
+    if (!session?.token) {
+      setError('Please sign in again to update your profile.')
+      return
+    }
+
+    try {
+      setSaving(true)
+      await updateMyProfile(session.token, form)
+      setSuccess('Profile updated successfully.')
+      await syncDashboard(session.token)
+      setForm((current) => ({ ...current, password: '' }))
+    } catch (requestError) {
+      setError(readApiError(requestError, 'Unable to update your profile right now.'))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div className="portal-page">
@@ -1088,25 +1131,49 @@ function AdminProfilePage() {
       />
 
       <section className="portal-grid portal-grid--two">
-        <Panel title="Account summary" description="The administrator login and stored metadata">
+        <Panel title="Account summary" description="Update the administrator login and profile details here">
           <div className="portal-profile-grid">
-            <div className="portal-credential-card">
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Name</span>
-              <strong>{state.admin?.name}</strong>
-            </div>
-            <div className="portal-credential-card">
+              <input value={form.name} onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Email</span>
-              <strong>{state.admin?.email}</strong>
-            </div>
-            <div className="portal-credential-card">
+              <input value={form.email} onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+              <span>Phone</span>
+              <input value={form.phone} onChange={(e) => setForm((current) => ({ ...current, phone: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
               <span>Title</span>
-              <strong>{state.admin?.title}</strong>
-            </div>
+              <input value={form.title} onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))} style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
             <div className="portal-credential-card">
               <span>Credential status</span>
               <strong>{state.admin?.credentialStatus || 'Stored securely'}</strong>
             </div>
+            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
+              <span>New password</span>
+              <input type="password" value={form.password} onChange={(e) => setForm((current) => ({ ...current, password: e.target.value }))} placeholder="Leave blank to keep current password" style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }} />
+            </label>
           </div>
+
+          {error ? (
+            <div style={{ marginTop: 12, background: '#fff1f2', border: '1px solid #fecdd3', color: '#be123c', padding: 10, borderRadius: 10 }}>
+              {error}
+            </div>
+          ) : null}
+
+          {success ? (
+            <div style={{ marginTop: 12, background: '#ecfdf5', border: '1px solid #bbf7d0', color: '#166534', padding: 10, borderRadius: 10 }}>
+              {success}
+            </div>
+          ) : null}
+
+          <button type="button" onClick={handleSave} disabled={saving} className="portal-button" style={{ marginTop: 16 }}>
+            {saving ? 'Saving...' : 'Save profile'}
+          </button>
         </Panel>
 
         <Panel title="Control notes" description="What this admin account can manage">

@@ -101,6 +101,15 @@ async function updatePatientProfile(token, payload) {
   return data
 }
 
+async function updateMyProfile(token, payload) {
+  const { data } = await api.put('/auth/profile', payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return data
+}
+
 export {
   api,
   bookAppointment,
@@ -114,5 +123,6 @@ export {
   readApiError,
   registerPatient,
   updateAppointmentStatus,
+  updateMyProfile,
   updatePatientProfile,
 }
