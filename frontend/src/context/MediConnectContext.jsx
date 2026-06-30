@@ -152,6 +152,13 @@ export function MediConnectProvider({ children }) {
       transports: ['websocket'],
     })
 
+    socket.on('connect_error', (err) => {
+      console.warn('Dashboard socket connection error:', err.message)
+      if (err.message === 'Authentication failed' || err.message === 'Authentication token missing') {
+        socket.disconnect()
+      }
+    })
+
     socket.on('connect', () => {
       socket.emit('join-user', { userId: session.userId })
     })

@@ -11,8 +11,9 @@ function getFriendlyError(error, fallback) {
 }
 
 function isCallReady(status = '') {
-  return ['Confirmed', 'Accepted', 'In Consultation'].includes(status)
+  return ['Confirmed', 'Accepted', 'In Consultation', 'Completed'].includes(status)
 }
+
 
 export default function ConsultationRoomPage() {
   const { appointmentId } = useParams()
@@ -107,6 +108,13 @@ export default function ConsultationRoomPage() {
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
       auth: { token: session.token },
       transports: ['websocket'],
+    })
+
+    socket.on('connect_error', (err) => {
+      console.warn('Consultation socket connection error:', err.message)
+      if (err.message === 'Authentication failed' || err.message === 'Authentication token missing') {
+        socket.disconnect()
+      }
     })
 
     socketRef.current = socket
@@ -242,7 +250,7 @@ export default function ConsultationRoomPage() {
     return stream
   }
 
-  async function joinRoom() {
+  const joinRoom = useCallback(async () => {
     if (!session?.token) {
       setError('Please sign in again to join the consultation room.')
       return
@@ -278,7 +286,14 @@ export default function ConsultationRoomPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.token, session?.role, appointment, appointmentId, startOffer])
+
+  useEffect(() => {
+    if (appointment && canStartCall && socketRef.current && !joined && !loading && !joinedRef.current) {
+      joinRoom()
+    }
+  }, [appointment, canStartCall, joined, loading, joinRoom])
+
 
   function toggleTrack(kind) {
     const stream = localStreamRef.current

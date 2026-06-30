@@ -38,6 +38,12 @@ function PatientDashboardPage() {
     }
   }, [session?.token, syncDashboard])
 
+  const recentCompletedAppointment = useMemo(() => {
+    return [...overview.appointments]
+      .filter((appointment) => appointment.status === 'Completed')
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.time).localeCompare(String(a.time)))[0] || null
+  }, [overview.appointments])
+
   return (
     <div className="portal-page">
       <SectionHeader
@@ -50,6 +56,37 @@ function PatientDashboardPage() {
           </Link>
         }
       />
+
+      {recentCompletedAppointment ? (
+        <div style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          color: 'white',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <div style={{ fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FiVideo /> Next: Video Consultation Available
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px' }}>
+              Your prescription has been sent. Start the video consultation to speak with <strong>{recentCompletedAppointment.doctor?.name || 'the doctor'}</strong>.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Link to={`/consultation/${recentCompletedAppointment.id}`} className="portal-button" style={{ background: 'white', color: '#4f46e5', border: 'none', fontWeight: '600' }}>
+              Join Video Consultation
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
 
       <section className="portal-metric-grid portal-metric-grid--compact">
         <MetricCard icon={FiCalendar} label="Appointments" value={overview.metrics.appointments} detail="Booked visits" tone="blue" />

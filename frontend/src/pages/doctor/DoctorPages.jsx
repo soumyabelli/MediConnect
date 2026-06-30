@@ -56,6 +56,12 @@ function DoctorDashboardPage() {
     [overview.appointments],
   )
 
+  const recentCompletedAppointment = useMemo(() => {
+    return [...overview.appointments]
+      .filter((appointment) => appointment.status === 'Completed')
+      .sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.time).localeCompare(String(a.time)))[0] || null
+  }, [overview.appointments])
+
   const recentPatients = useMemo(() => overview.patients.slice(0, 5), [overview.patients])
   const recentRecords = useMemo(() => overview.records.slice(0, 4), [overview.records])
 
@@ -71,6 +77,37 @@ function DoctorDashboardPage() {
           </Link>
         }
       />
+
+      {recentCompletedAppointment ? (
+        <div style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          color: 'white',
+          padding: '16px 20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <div style={{ fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FiVideo /> Next: Video Consultation Available
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.9, marginTop: '4px' }}>
+              Prescription has been sent. Start the video consultation to speak with <strong>{recentCompletedAppointment.patient?.name || 'the patient'}</strong>.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Link to={`/consultation/${recentCompletedAppointment.id}`} className="portal-button" style={{ background: 'white', color: '#4f46e5', border: 'none', fontWeight: '600' }}>
+              Start Video Consultation
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
 
       <section className="portal-metric-grid portal-metric-grid--compact">
         <MetricCard icon={FiCalendar} label="Appointments" value={overview.metrics.upcomingAppointments} detail="Live schedule items" tone="blue" />
@@ -451,6 +488,8 @@ function DoctorPrescriptionsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [lastCompletedAppointmentId, setLastCompletedAppointmentId] = useState('')
+
 
   useEffect(() => {
     if (session?.token) {
@@ -514,6 +553,7 @@ function DoctorPrescriptionsPage() {
         type: form.type || 'Prescription',
       })
       setSuccess('Prescription sent to the patient timeline.')
+      setLastCompletedAppointmentId(effectiveAppointmentId)
       setForm((current) => ({
         ...current,
         title: '',
@@ -526,6 +566,7 @@ function DoctorPrescriptionsPage() {
         appointmentId: '',
       }))
       await syncDashboard(session.token)
+
     } catch (requestError) {
       setError(readApiError(requestError, 'Unable to save the prescription right now.'))
     } finally {
@@ -664,9 +705,17 @@ function DoctorPrescriptionsPage() {
 
           {success ? (
             <div style={{ marginTop: 12, background: '#ecfdf5', border: '1px solid #bbf7d0', color: '#166534', padding: 12, borderRadius: 10 }}>
-              {success}
+              <div>{success}</div>
+              {lastCompletedAppointmentId ? (
+                <div style={{ marginTop: 10 }}>
+                  <Link to={`/consultation/${lastCompletedAppointmentId}`} className="portal-button" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <FiVideo /> Start Video Consultation Now
+                  </Link>
+                </div>
+              ) : null}
             </div>
           ) : null}
+
 
           <button type="button" className="portal-button" onClick={handleSave} disabled={saving} style={{ marginTop: 16 }}>
             <FiSend /> {saving ? 'Sending...' : 'Send prescription'}
