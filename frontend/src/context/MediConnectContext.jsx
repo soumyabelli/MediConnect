@@ -111,6 +111,13 @@ export function MediConnectProvider({ children }) {
   const syncDashboard = useCallback(async (token) => {
     try {
       const response = await fetchDashboard(token)
+      
+      // If session was cleared (logged out) or changed while request was in flight, abort
+      const currentSession = loadSession()
+      if (!currentSession || currentSession.token !== token) {
+        return { ok: false, message: 'Session changed or logged out during sync.' }
+      }
+
       const nextSession = buildSessionFromResponse(response, token)
       const nextDashboard = normalizeDashboard(response?.dashboard)
 
@@ -149,7 +156,7 @@ export function MediConnectProvider({ children }) {
 
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
       auth: { token: session.token },
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     })
 
     socket.on('connect_error', (err) => {
@@ -221,15 +228,18 @@ export function MediConnectProvider({ children }) {
         }
 
         if (dashboardResponse && !dashboardResponse.error) {
-          const nextSession = buildSessionFromResponse(dashboardResponse, storedSession?.token || '')
-          nextDashboard = normalizeDashboard(dashboardResponse.dashboard)
+          const currentSession = loadSession()
+          if (currentSession && currentSession.token === storedSession?.token) {
+            const nextSession = buildSessionFromResponse(dashboardResponse, storedSession?.token || '')
+            nextDashboard = normalizeDashboard(dashboardResponse.dashboard)
 
-          if (nextSession) {
-            setSession(nextSession)
-            saveSession(nextSession)
+            if (nextSession) {
+              setSession(nextSession)
+              saveSession(nextSession)
+            }
+
+            setState(nextDashboard)
           }
-
-          setState(nextDashboard)
         } else if (dashboardResponse?.error?.response?.status === 401) {
           clearSession()
           setSession(null)

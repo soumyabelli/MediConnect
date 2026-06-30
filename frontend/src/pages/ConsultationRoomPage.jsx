@@ -107,7 +107,7 @@ export default function ConsultationRoomPage() {
 
     const socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
       auth: { token: session.token },
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
     })
 
     socket.on('connect_error', (err) => {
