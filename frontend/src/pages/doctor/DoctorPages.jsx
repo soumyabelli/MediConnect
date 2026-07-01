@@ -524,8 +524,8 @@ function DoctorPrescriptionsPage() {
       return
     }
 
-    if (!form.patientId || !form.title || !form.summary || !form.prescription) {
-      setError('Please choose a patient and complete every field.')
+    if (!form.patientId || !form.title) {
+      setError('Please choose a patient and enter a title.')
       return
     }
 
@@ -542,15 +542,15 @@ function DoctorPrescriptionsPage() {
         patientId: effectivePatientId,
         appointmentId: effectiveAppointmentId,
         title: form.title,
-        summary: form.summary,
-        prescription: form.prescription,
+        summary: form.title || 'Prescription',
+        prescription: 'Prescription details',
         prescriptionDetails: {
-          diagnosis: form.diagnosis,
+          diagnosis: '',
           medicines: parseMedicines(form.medicines),
-          notes: form.notes,
+          notes: '',
           followUpDate: form.followUpDate || null,
         },
-        type: form.type || 'Prescription',
+        type: 'Prescription',
       })
       setSuccess('Prescription sent to the patient timeline.')
       setLastCompletedAppointmentId(effectiveAppointmentId)
@@ -626,46 +626,9 @@ function DoctorPrescriptionsPage() {
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
               />
             </label>
-            <label className="portal-credential-card" style={{ display: 'grid', gap: 6 }}>
-              <span>Type</span>
-              <input
-                value={form.type}
-                onChange={(e) => setForm((current) => ({ ...current, type: e.target.value }))}
-                placeholder="Prescription"
-                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
-              />
-            </label>
           </div>
 
           <div className="portal-notes" style={{ marginTop: 16 }}>
-            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
-              <strong>Summary</strong>
-              <textarea
-                rows={4}
-                value={form.summary}
-                onChange={(e) => setForm((current) => ({ ...current, summary: e.target.value }))}
-                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
-              />
-            </label>
-            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
-              <strong>Prescription</strong>
-              <textarea
-                rows={5}
-                value={form.prescription}
-                onChange={(e) => setForm((current) => ({ ...current, prescription: e.target.value }))}
-                placeholder="Medicine details, dosage, duration, follow-up instructions..."
-                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
-              />
-            </label>
-            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
-              <strong>Diagnosis</strong>
-              <input
-                value={form.diagnosis}
-                onChange={(e) => setForm((current) => ({ ...current, diagnosis: e.target.value }))}
-                placeholder="Diagnosis"
-                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
-              />
-            </label>
             <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
               <strong>Medicines</strong>
               <textarea
@@ -673,16 +636,6 @@ function DoctorPrescriptionsPage() {
                 value={form.medicines}
                 onChange={(e) => setForm((current) => ({ ...current, medicines: e.target.value }))}
                 placeholder="One per line: Name | Dosage | Duration | Instructions"
-                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
-              />
-            </label>
-            <label className="portal-note" style={{ display: 'grid', gap: 6 }}>
-              <strong>Notes</strong>
-              <textarea
-                rows={3}
-                value={form.notes}
-                onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
-                placeholder="Notes"
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', resize: 'vertical' }}
               />
             </label>
