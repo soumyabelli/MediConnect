@@ -1,5 +1,6 @@
-﻿const { Server } = require('socket.io')
+const { Server } = require('socket.io')
 const jwt = require('jsonwebtoken')
+const Appointment = require('../models/Appointment')
 
 let ioInstance = null
 
@@ -91,15 +92,50 @@ function setupRealtime(server) {
       socket.join(`user:${user.id}`)
     }
 
-    socket.on('join-consultation', ({ appointmentId } = {}, ack = () => {}) => {
+    socket.on('join-consultation', async ({ appointmentId } = {}, ack = () => {}) => {
       if (!appointmentId) {
         ack({ ok: false, message: 'appointmentId is required.' })
         return
       }
 
-      socket.join(`appointment:${String(appointmentId)}`)
-      socket.to(`appointment:${String(appointmentId)}`).emit('consultation:peer-joined', { appointmentId, user })
-      ack({ ok: true })
+      try {
+        const appointment = await Appointment.findById(appointmentId)
+        if (!appointment) {
+          ack({ ok: false, message: 'Appointment not found.' })
+          return
+        }
+
+        if (user.role === 'patient') {
+          if (!appointment.videoCallStartedAt) {
+            ack({ ok: false, message: 'Waiting for the doctor to start the video consultation.' })
+            return
+          }
+
+          if (!appointment.patientJoinedCallAt) {
+            const timePassed = new Date() - new Date(appointment.videoCallStartedAt)
+            if (timePassed > 5 * 60 * 1000) {
+              ack({ ok: false, message: 'The video consultation link has expired because you did not join within 5 minutes.' })
+              return
+            }
+            appointment.patientJoinedCallAt = new Date()
+            await appointment.save()
+          }
+        } else if (user.role === 'doctor') {
+          if (!appointment.videoCallStartedAt) {
+            appointment.videoCallStartedAt = new Date()
+            await appointment.save()
+          }
+        }
+
+        socket.join(`appointment:${String(appointmentId)}`)
+        const room = io.sockets.adapter.rooms.get(`appointment:${String(appointmentId)}`)
+        const hasPeer = room && room.size > 1
+
+        socket.to(`appointment:${String(appointmentId)}`).emit('consultation:peer-joined', { appointmentId, user })
+        ack({ ok: true, hasPeer })
+      } catch (err) {
+        ack({ ok: false, message: 'Error joining consultation: ' + err.message })
+      }
     })
 
     socket.on('leave-consultation', ({ appointmentId } = {}) => {

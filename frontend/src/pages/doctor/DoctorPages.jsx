@@ -505,6 +505,11 @@ function DoctorPrescriptionsPage() {
 
   const isPrescriptionType = String(form.type || '').toLowerCase().includes('prescription')
 
+  const patientRecords = useMemo(() => {
+    if (!effectivePatientId) return []
+    return overview.records.filter((record) => String(record.patientId) === String(effectivePatientId))
+  }, [overview.records, effectivePatientId])
+
   function parseMedicines(input) {
     return String(input || '')
       .split('\n')
@@ -677,24 +682,51 @@ function DoctorPrescriptionsPage() {
 
         <Panel title="Current selection" description="The chosen patient and appointment are shown here">
           {selectedPatient ? (
-            <div className="portal-notes">
-              <article className="portal-note">
-                <strong>Patient</strong>
-                <p>{selectedPatient.name}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Condition</strong>
-                <p>{selectedPatient.condition || '-'}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Address</strong>
-                <p>{selectedPatient.address || '-'}</p>
-              </article>
-              <article className="portal-note">
-                <strong>Contact</strong>
-                <p>{selectedPatient.phone || selectedPatient.email}</p>
-              </article>
-            </div>
+            <>
+              <div className="portal-notes">
+                <article className="portal-note">
+                  <strong>Patient</strong>
+                  <p>{selectedPatient.name}</p>
+                </article>
+                <article className="portal-note">
+                  <strong>Condition</strong>
+                  <p>{selectedPatient.condition || '-'}</p>
+                </article>
+                <article className="portal-note">
+                  <strong>Address</strong>
+                  <p>{selectedPatient.address || '-'}</p>
+                </article>
+                <article className="portal-note">
+                  <strong>Contact</strong>
+                  <p>{selectedPatient.phone || selectedPatient.email}</p>
+                </article>
+              </div>
+
+              <div style={{ marginTop: 20 }}>
+                <h4 style={{ fontSize: 14, fontWeight: '700', marginBottom: 10, color: '#374151' }}>Medical History</h4>
+                {patientRecords.length ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: '250px', overflowY: 'auto', paddingRight: 5 }}>
+                    {patientRecords.map((rec) => (
+                      <div key={rec.id} style={{ padding: 10, border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#6b7280', marginBottom: 4 }}>
+                          <span>{rec.type}</span>
+                          <span>{rec.date}</span>
+                        </div>
+                        <strong style={{ fontSize: 12, display: 'block', color: '#111827' }}>{rec.title}</strong>
+                        <p style={{ fontSize: 12, margin: '2px 0 0 0', color: '#4b5563' }}>{rec.summary}</p>
+                        {rec.prescription ? (
+                          <div style={{ marginTop: 4, fontSize: 11, color: '#059669' }}>
+                            Prescription: <strong>{rec.prescription}</strong>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: 12, color: '#6b7280' }}>No past medical history records found.</p>
+                )}
+              </div>
+            </>
           ) : (
             <EmptyState title="Pick a patient" description="Select a patient to preload the prescription form." />
           )}

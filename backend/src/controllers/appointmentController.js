@@ -1,4 +1,4 @@
-﻿const Appointment = require('../models/Appointment')
+const Appointment = require('../models/Appointment')
 const User = require('../models/User')
 const { isConnected } = require('../config/db')
 const { emitAppointmentUpdate, emitDashboardUpdate } = require('../utils/realtime')
@@ -20,6 +20,19 @@ function toDayBounds(input) {
   end.setHours(23, 59, 59, 999)
 
   return { start, end }
+}
+
+function getAppointmentStartDateTime(appointmentDate, timeLabel) {
+  const date = new Date(appointmentDate)
+  const match = String(timeLabel || '').match(/^(\d+):(\d+)\s*(AM|PM)$/i)
+  if (!match) return date
+  let hours = parseInt(match[1], 10)
+  const minutes = parseInt(match[2], 10)
+  const ampm = match[3].toUpperCase()
+  if (ampm === 'PM' && hours < 12) hours += 12
+  if (ampm === 'AM' && hours === 12) hours = 0
+  date.setHours(hours, minutes, 0, 0)
+  return date
 }
 
 function normalizeTimeLabel(value) {
@@ -246,6 +259,30 @@ async function updateAppointmentStatus(req, res, next) {
 
     if (String(appointment.doctor._id || appointment.doctor) !== String(req.user._id)) {
       return res.status(403).json({ message: 'You can only update appointments assigned to you.' })
+    }
+
+    if (normalizedStatus === 'In Consultation') {
+      const now = new Date()
+      const apptDate = new Date(appointment.appointmentDate)
+      
+      // Enforce scheduled date (same day)
+      if (
+        now.getFullYear() !== apptDate.getFullYear() ||
+        now.getMonth() !== apptDate.getMonth() ||
+        now.getDate() !== apptDate.getDate()
+      ) {
+        return res.status(400).json({ message: 'You can only start the video consultation on the scheduled date of the appointment.' })
+      }
+
+      // Enforce scheduled start time
+      const appointmentStart = getAppointmentStartDateTime(appointment.appointmentDate, appointment.timeLabel)
+      if (now < appointmentStart) {
+        return res.status(400).json({ message: `You can only start the video consultation at or after the scheduled time (${appointment.timeLabel}).` })
+      }
+
+      if (!appointment.videoCallStartedAt) {
+        appointment.videoCallStartedAt = now
+      }
     }
 
     appointment.status = normalizedStatus

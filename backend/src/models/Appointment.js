@@ -46,6 +46,14 @@ const appointmentSchema = new Schema(
       trim: true,
       default: '',
     },
+    videoCallStartedAt: {
+      type: Date,
+      default: null,
+    },
+    patientJoinedCallAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

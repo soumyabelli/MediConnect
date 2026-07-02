@@ -349,6 +349,7 @@ export default function ConsultationRoomPage() {
   }
 
   const canStartCall = appointment ? isCallReady(appointment.status) : false
+  const isExpired = error && String(error).toLowerCase().includes('expired')
   const appointmentTitle = appointment
     ? `${appointment.doctor?.name || appointment.doctorId || 'Doctor'} and ${appointment.patient?.name || appointment.patientId || 'Patient'}`
     : 'Consultation room'
@@ -394,8 +395,8 @@ export default function ConsultationRoomPage() {
           </div>
 
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
-            <button type="button" className="portal-button" onClick={joinRoom} disabled={loading || !canStartCall}>
-              <FiVideo /> {loading ? 'Preparing...' : joined ? 'Rejoin room' : 'Join room'}
+            <button type="button" className="portal-button" onClick={joinRoom} disabled={loading || !canStartCall || isExpired}>
+              <FiVideo /> {loading ? 'Preparing...' : isExpired ? 'Expired' : joined ? 'Rejoin room' : 'Join room'}
             </button>
             <button type="button" className="portal-button portal-button--ghost" onClick={() => toggleTrack('audio')} disabled={!mediaReady}>
               {micEnabled ? <FiMic /> : <FiMicOff />} {micEnabled ? 'Mute mic' : 'Unmute mic'}

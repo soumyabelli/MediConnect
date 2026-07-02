@@ -19,6 +19,19 @@ function normalizeMaybeDate(value) {
   return date
 }
 
+function getAppointmentStartDateTime(appointmentDate, timeLabel) {
+  const date = new Date(appointmentDate)
+  const match = String(timeLabel || '').match(/^(\d+):(\d+)\s*(AM|PM)$/i)
+  if (!match) return date
+  let hours = parseInt(match[1], 10)
+  const minutes = parseInt(match[2], 10)
+  const ampm = match[3].toUpperCase()
+  if (ampm === 'PM' && hours < 12) hours += 12
+  if (ampm === 'AM' && hours === 12) hours = 0
+  date.setHours(hours, minutes, 0, 0)
+  return date
+}
+
 function normalizePrescriptionDetails(input) {
   const raw = input && typeof input === 'object' ? input : {}
   const medicines = Array.isArray(raw.medicines) ? raw.medicines : []
@@ -90,6 +103,22 @@ async function createRecord(req, res, next) {
 
       if (!['Confirmed', 'Accepted', 'In Consultation', 'Completed'].includes(String(appointment.status))) {
         return res.status(400).json({ message: 'The appointment must be accepted before writing a prescription.' })
+      }
+
+      if (isPrescription) {
+        const existingPrescriptionsCount = await Record.countDocuments({
+          appointment: appointment._id,
+          type: /prescription/i
+        })
+
+        if (existingPrescriptionsCount === 0) {
+          const appointmentStart = getAppointmentStartDateTime(appointment.appointmentDate, appointment.timeLabel)
+          const now = new Date()
+          const timePassed = now - appointmentStart
+          if (timePassed > 30 * 60 * 1000) {
+            return res.status(400).json({ message: "The first prescription must be submitted within 30 minutes of the appointment's scheduled time." })
+          }
+        }
       }
     }
 
