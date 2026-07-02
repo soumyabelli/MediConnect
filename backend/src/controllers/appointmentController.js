@@ -1,4 +1,4 @@
-const Appointment = require('../models/Appointment')
+﻿const Appointment = require('../models/Appointment')
 const User = require('../models/User')
 const { isConnected } = require('../config/db')
 const { emitAppointmentUpdate, emitDashboardUpdate } = require('../utils/realtime')
@@ -264,7 +264,7 @@ async function updateAppointmentStatus(req, res, next) {
     if (normalizedStatus === 'In Consultation') {
       const now = new Date()
       const apptDate = new Date(appointment.appointmentDate)
-      
+
       // Enforce scheduled date (same day)
       if (
         now.getFullYear() !== apptDate.getFullYear() ||
